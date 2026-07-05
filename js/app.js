@@ -14,7 +14,10 @@ document
 
 function interpretarMensaje() {
 
-    const texto = document.getElementById("mensaje").value.trim();
+    const texto = document
+        .getElementById("mensaje")
+        .value
+        .trim();
 
     if (!texto) {
         alert("Pegá un mensaje.");
@@ -30,7 +33,7 @@ function interpretarMensaje() {
 function registrarPedido() {
 
     if (!pedidoActual) {
-        alert("Primero interpretá un pedido.");
+        alert("No hay ningún pedido para registrar.");
         return;
     }
 
@@ -42,6 +45,7 @@ function registrarPedido() {
 
     document.getElementById("pedido").innerHTML = `
         <div class="vacio">
+            🍕<br><br>
             Esperando un nuevo pedido...
         </div>
     `;

@@ -7,7 +7,6 @@ function mostrarComanda(datos){
         .join("");
 
     document.getElementById("pedido").innerHTML = `
-
         <div class="ticket">
 
             <div class="ticket-header">
@@ -36,24 +35,21 @@ function mostrarComanda(datos){
 
             <div>📝 ${datos.observaciones}</div>
 
-        </div>
+            <hr>
 
+            <div><strong>Estado:</strong> ${datos.estado || "Nuevo"}</div>
+
+        </div>
     `;
 }
 
 function actualizarHistorial(){
 
-    if(typeof Storage.obtener !== "function"){
-        return;
-    }
-
     const pedidos = Storage.obtener();
 
     const div = document.getElementById("historial");
 
-    if(!div){
-        return;
-    }
+    if(!div) return;
 
     if(pedidos.length===0){
 
@@ -63,7 +59,7 @@ function actualizarHistorial(){
 
     }
 
-    div.innerHTML=pedidos.map(p=>{
+    div.innerHTML = pedidos.map((p,index)=>{
 
         const cantidad=(p.pedido||"")
             .split("\n")
@@ -71,13 +67,52 @@ function actualizarHistorial(){
             .length;
 
         return `
-            <div class="item-historial">
-                <strong>🔴 ${p.cliente}</strong><br>
+            <div class="item-historial"
+                 onclick="abrirPedido(${index})">
+
+                <strong>${iconoEstado(p.estado)} ${p.cliente}</strong><br>
+
                 <small>${p.fecha}</small><br>
-                🍕 ${cantidad} producto${cantidad!==1?"s":""}
+
+                🍕 ${cantidad} producto${cantidad!==1?"s":""}<br>
+
+                Estado: ${p.estado}
+
             </div>
         `;
 
     }).join("");
+
+}
+
+function abrirPedido(indice){
+
+    const pedidos = Storage.obtener();
+
+    const pedido = pedidos[indice];
+
+    if(!pedido) return;
+
+    mostrarComanda(pedido);
+
+}
+
+function iconoEstado(estado){
+
+    switch(estado){
+
+        case "Preparando":
+            return "🟡";
+
+        case "Listo":
+            return "🟢";
+
+        case "Entregado":
+            return "🔵";
+
+        default:
+            return "🔴";
+
+    }
 
 }

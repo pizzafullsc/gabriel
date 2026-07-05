@@ -7,40 +7,55 @@ function mostrarComanda(datos) {
         .join("");
 
     document.getElementById("pedido").innerHTML = `
+        <div class="ticket">
 
-    <div class="ticket">
+            <div class="ticket-header">
+                🍕 COMANDA
+            </div>
 
-        <div class="ticket-header">
-            🍕 COMANDA
+            <p><strong>👤 ${datos.cliente}</strong></p>
+            <p>📞 ${datos.telefono}</p>
+            <p>📍 ${datos.direccion}</p>
+
+            <hr>
+
+            <h3>Pedido</h3>
+
+            <ul class="lista-pedido">
+                ${items}
+            </ul>
+
+            <hr>
+
+            <p>💳 ${datos.pago}</p>
+            <p>💵 Cambio ${datos.cambio}</p>
+            <p>📝 ${datos.observaciones}</p>
+
+            <hr>
+
+            <button id="btnEstado">
+                ${iconoEstado(datos.estado)} ${datos.estado}
+            </button>
+
         </div>
-
-        <div>👤 <strong>${datos.cliente}</strong></div>
-        <div>📞 ${datos.telefono}</div>
-        <div>📍 ${datos.direccion}</div>
-
-        <hr>
-
-        <h3>🛒 Pedido</h3>
-
-        <ul class="lista-pedido">
-            ${items}
-        </ul>
-
-        <hr>
-
-        <div>💳 ${datos.pago}</div>
-        <div>💵 Cambio: ${datos.cambio}</div>
-        <div>📝 ${datos.observaciones}</div>
-
-        <hr>
-
-        <button onclick="cambiarEstado(${datos.id})">
-            ${iconoEstado(datos.estado)} ${datos.estado}
-        </button>
-
-    </div>
-
     `;
+
+    const boton = document.getElementById("btnEstado");
+
+    if (datos.id) {
+
+        boton.addEventListener("click", () => {
+
+            const actualizado = Storage.cambiarEstado(datos.id);
+
+            mostrarComanda(actualizado);
+
+            actualizarHistorial();
+
+        });
+
+    }
+
 }
 
 function actualizarHistorial() {
@@ -60,48 +75,29 @@ function actualizarHistorial() {
 
     }
 
-    historial.innerHTML = pedidos.map(p => `
+    historial.innerHTML = "";
 
-        <div class="item-historial"
-             onclick="abrirPedido(${p.id})">
+    pedidos.forEach(pedido => {
 
-            <strong>${iconoEstado(p.estado)} ${p.cliente}</strong>
+        const tarjeta = document.createElement("div");
 
-            <br>
+        tarjeta.className = "item-historial";
 
-            <small>${p.fecha}</small>
+        tarjeta.innerHTML = `
+            <strong>${iconoEstado(pedido.estado)} ${pedido.cliente}</strong><br>
+            <small>${pedido.fecha}</small><br>
+            ${pedido.estado}
+        `;
 
-            <br>
+        tarjeta.addEventListener("click", () => {
 
-            ${p.estado}
+            mostrarComanda(pedido);
 
-        </div>
+        });
 
-    `).join("");
+        historial.appendChild(tarjeta);
 
-}
-
-function abrirPedido(id){
-
-    const pedido = Storage
-        .obtener()
-        .find(p=>p.id===id);
-
-    if(!pedido) return;
-
-    mostrarComanda(pedido);
-
-}
-
-function cambiarEstado(id){
-
-    const pedido = Storage.cambiarEstado(id);
-
-    if(!pedido) return;
-
-    mostrarComanda(pedido);
-
-    actualizarHistorial();
+    });
 
 }
 

@@ -1,6 +1,10 @@
 const Storage = {
 
-    guardar(pedido){
+    obtener() {
+        return JSON.parse(localStorage.getItem("gabriel_pedidos")) || [];
+    },
+
+    guardar(pedido) {
 
         const pedidos = this.obtener();
 
@@ -17,15 +21,38 @@ const Storage = {
 
     },
 
-    obtener(){
+    actualizarEstado(id) {
 
-        return JSON.parse(
-            localStorage.getItem("gabriel_pedidos")
-        ) || [];
+        const pedidos = this.obtener();
+
+        const estados = [
+            "Nuevo",
+            "Preparando",
+            "Listo",
+            "Entregado"
+        ];
+
+        const pedido = pedidos.find(p => p.id === id);
+
+        if (!pedido) return;
+
+        let indice = estados.indexOf(pedido.estado);
+
+        indice++;
+
+        if (indice >= estados.length)
+            indice = 0;
+
+        pedido.estado = estados[indice];
+
+        localStorage.setItem(
+            "gabriel_pedidos",
+            JSON.stringify(pedidos)
+        );
 
     },
 
-    borrar(){
+    borrar() {
 
         localStorage.removeItem("gabriel_pedidos");
 

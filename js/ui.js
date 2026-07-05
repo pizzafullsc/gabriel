@@ -14,9 +14,7 @@ function mostrarComanda(datos){
             </div>
 
             <div>👤 <strong>${datos.cliente}</strong></div>
-
             <div>📞 ${datos.telefono}</div>
-
             <div>📍 ${datos.direccion}</div>
 
             <hr>
@@ -30,26 +28,25 @@ function mostrarComanda(datos){
             <hr>
 
             <div>💳 ${datos.pago}</div>
-
             <div>💵 Cambio: ${datos.cambio}</div>
-
             <div>📝 ${datos.observaciones}</div>
 
             <hr>
 
-            <div><strong>Estado:</strong> ${datos.estado || "Nuevo"}</div>
+            <div><strong>Estado:</strong> ${iconoEstado(datos.estado)} ${datos.estado}</div>
 
         </div>
     `;
+
 }
 
 function actualizarHistorial(){
 
-    const pedidos = Storage.obtener();
+    const pedidos=Storage.obtener();
 
-    const div = document.getElementById("historial");
+    const div=document.getElementById("historial");
 
-    if(!div) return;
+    if(!div)return;
 
     if(pedidos.length===0){
 
@@ -59,26 +56,28 @@ function actualizarHistorial(){
 
     }
 
-    div.innerHTML = pedidos.map((p,index)=>{
+    div.innerHTML=pedidos.map((p,index)=>{
 
         const cantidad=(p.pedido||"")
             .split("\n")
-            .filter(x=>x.trim()!=="")
+            .filter(x=>x.trim()!="")
             .length;
 
         return `
-            <div class="item-historial"
-                 onclick="abrirPedido(${index})">
 
-                <strong>${iconoEstado(p.estado)} ${p.cliente}</strong><br>
+        <div class="item-historial"
+             onclick="abrirPedido(${index})">
 
-                <small>${p.fecha}</small><br>
+            <strong>${iconoEstado(p.estado)} ${p.cliente}</strong><br>
 
-                🍕 ${cantidad} producto${cantidad!==1?"s":""}<br>
+            <small>${p.fecha}</small><br>
 
-                Estado: ${p.estado}
+            🍕 ${cantidad} producto${cantidad!=1?"s":""}<br>
 
-            </div>
+            Estado: ${p.estado}
+
+        </div>
+
         `;
 
     }).join("");
@@ -87,13 +86,11 @@ function actualizarHistorial(){
 
 function abrirPedido(indice){
 
-    const pedidos = Storage.obtener();
+    const pedidos=Storage.obtener();
 
-    const pedido = pedidos[indice];
+    if(!pedidos[indice]) return;
 
-    if(!pedido) return;
-
-    mostrarComanda(pedido);
+    mostrarComanda(pedidos[indice]);
 
 }
 
@@ -101,18 +98,41 @@ function iconoEstado(estado){
 
     switch(estado){
 
-        case "Preparando":
-            return "🟡";
-
-        case "Listo":
-            return "🟢";
-
-        case "Entregado":
-            return "🔵";
-
-        default:
-            return "🔴";
+        case "Preparando": return "🟡";
+        case "Listo": return "🟢";
+        case "Entregado": return "🔵";
+        default: return "🔴";
 
     }
+
+}
+
+function mostrarMensaje(texto,tipo="ok"){
+
+    let aviso=document.getElementById("toast");
+
+    if(!aviso){
+
+        aviso=document.createElement("div");
+
+        aviso.id="toast";
+
+        document.body.appendChild(aviso);
+
+    }
+
+    aviso.className=tipo;
+
+    aviso.innerHTML=texto;
+
+    aviso.style.display="block";
+
+    clearTimeout(aviso.timer);
+
+    aviso.timer=setTimeout(()=>{
+
+        aviso.style.display="none";
+
+    },2500);
 
 }

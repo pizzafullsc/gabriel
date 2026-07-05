@@ -1,49 +1,51 @@
 let pedidoActual = null;
 
+document.addEventListener("DOMContentLoaded", () => {
+    actualizarHistorial();
+});
+
 document
-.getElementById("interpretar")
-.addEventListener("click",()=>{
+    .getElementById("interpretar")
+    .addEventListener("click", interpretarMensaje);
 
-    const texto=document.getElementById("mensaje").value;
+document
+    .getElementById("registrar")
+    .addEventListener("click", registrarPedido);
 
-    if(texto.trim()===""){
+function interpretarMensaje() {
+
+    const texto = document.getElementById("mensaje").value.trim();
+
+    if (!texto) {
         alert("Pegá un mensaje.");
         return;
     }
 
-    pedidoActual=interpretarPedido(texto);
+    pedidoActual = interpretarPedido(texto);
 
     mostrarComanda(pedidoActual);
 
-});
+}
 
-document
-.getElementById("registrar")
-.addEventListener("click",async()=>{
+function registrarPedido() {
 
-    if(!pedidoActual){
+    if (!pedidoActual) {
         alert("Primero interpretá un pedido.");
         return;
     }
 
     Storage.guardar(pedidoActual);
 
+    pedidoActual = null;
+
+    document.getElementById("mensaje").value = "";
+
+    document.getElementById("pedido").innerHTML = `
+        <div class="vacio">
+            Esperando un nuevo pedido...
+        </div>
+    `;
+
     actualizarHistorial();
 
-    const enviado = await Sync.enviar(pedidoActual);
-
-    if(enviado){
-
-        console.log("Pedido sincronizado.");
-
-    }else{
-
-        console.log("Quedó pendiente de sincronización.");
-
-    }
-
-    pedidoActual=null;
-
-    document.getElementById("mensaje").value="";
-
-});
+}

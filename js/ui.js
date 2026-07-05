@@ -1,96 +1,107 @@
-function mostrarComanda(datos){
+function mostrarComanda(datos) {
 
     const items = (datos.pedido || "")
         .split("\n")
-        .filter(l => l.trim() !== "")
-        .map(l => `<li>${l}</li>`)
+        .filter(i => i.trim() !== "")
+        .map(i => `<li>${i}</li>`)
         .join("");
 
     document.getElementById("pedido").innerHTML = `
-        <div class="ticket">
 
-            <div class="ticket-header">
-                🍕 COMANDA
-            </div>
+    <div class="ticket">
 
-            <div>👤 <strong>${datos.cliente}</strong></div>
-            <div>📞 ${datos.telefono}</div>
-            <div>📍 ${datos.direccion}</div>
-
-            <hr>
-
-            <h3>🛒 Pedido</h3>
-
-            <ul class="lista-pedido">
-                ${items}
-            </ul>
-
-            <hr>
-
-            <div>💳 ${datos.pago}</div>
-            <div>💵 Cambio: ${datos.cambio}</div>
-            <div>📝 ${datos.observaciones}</div>
-
-            <hr>
-
-            <div><strong>Estado:</strong> ${iconoEstado(datos.estado)} ${datos.estado}</div>
-
+        <div class="ticket-header">
+            🍕 COMANDA
         </div>
-    `;
 
+        <div>👤 <strong>${datos.cliente}</strong></div>
+        <div>📞 ${datos.telefono}</div>
+        <div>📍 ${datos.direccion}</div>
+
+        <hr>
+
+        <h3>🛒 Pedido</h3>
+
+        <ul class="lista-pedido">
+            ${items}
+        </ul>
+
+        <hr>
+
+        <div>💳 ${datos.pago}</div>
+        <div>💵 Cambio: ${datos.cambio}</div>
+        <div>📝 ${datos.observaciones}</div>
+
+        <hr>
+
+        <button onclick="cambiarEstado(${datos.id})">
+            ${iconoEstado(datos.estado)} ${datos.estado}
+        </button>
+
+    </div>
+
+    `;
 }
 
-function actualizarHistorial(){
+function actualizarHistorial() {
 
-    const pedidos=Storage.obtener();
+    const pedidos = Storage.obtener();
 
-    const div=document.getElementById("historial");
+    const historial = document.getElementById("historial");
 
-    if(!div)return;
+    if (!historial) return;
 
-    if(pedidos.length===0){
+    if (pedidos.length === 0) {
 
-        div.innerHTML="<p class='vacio'>Todavía no hay pedidos.</p>";
+        historial.innerHTML =
+            "<p class='vacio'>Todavía no hay pedidos.</p>";
 
         return;
 
     }
 
-    div.innerHTML=pedidos.map((p,index)=>{
-
-        const cantidad=(p.pedido||"")
-            .split("\n")
-            .filter(x=>x.trim()!="")
-            .length;
-
-        return `
+    historial.innerHTML = pedidos.map(p => `
 
         <div class="item-historial"
-             onclick="abrirPedido(${index})">
+             onclick="abrirPedido(${p.id})">
 
-            <strong>${iconoEstado(p.estado)} ${p.cliente}</strong><br>
+            <strong>${iconoEstado(p.estado)} ${p.cliente}</strong>
 
-            <small>${p.fecha}</small><br>
+            <br>
 
-            🍕 ${cantidad} producto${cantidad!=1?"s":""}<br>
+            <small>${p.fecha}</small>
 
-            Estado: ${p.estado}
+            <br>
+
+            ${p.estado}
 
         </div>
 
-        `;
-
-    }).join("");
+    `).join("");
 
 }
 
-function abrirPedido(indice){
+function abrirPedido(id){
 
-    const pedidos=Storage.obtener();
+    const pedido = Storage
+        .obtener()
+        .find(p=>p.id===id);
 
-    if(!pedidos[indice]) return;
+    if(!pedido) return;
 
-    mostrarComanda(pedidos[indice]);
+    mostrarComanda(pedido);
+
+}
+
+function cambiarEstado(id){
+
+    const pedido = Storage.cambiarEstado(id);
+
+    if(!pedido) return;
+
+    mostrarComanda(pedido);
+
+    actualizarHistorial();
 
 }
 
@@ -98,41 +109,18 @@ function iconoEstado(estado){
 
     switch(estado){
 
-        case "Preparando": return "🟡";
-        case "Listo": return "🟢";
-        case "Entregado": return "🔵";
-        default: return "🔴";
+        case "Preparando":
+            return "🟡";
+
+        case "Listo":
+            return "🟢";
+
+        case "Entregado":
+            return "🔵";
+
+        default:
+            return "🔴";
 
     }
-
-}
-
-function mostrarMensaje(texto,tipo="ok"){
-
-    let aviso=document.getElementById("toast");
-
-    if(!aviso){
-
-        aviso=document.createElement("div");
-
-        aviso.id="toast";
-
-        document.body.appendChild(aviso);
-
-    }
-
-    aviso.className=tipo;
-
-    aviso.innerHTML=texto;
-
-    aviso.style.display="block";
-
-    clearTimeout(aviso.timer);
-
-    aviso.timer=setTimeout(()=>{
-
-        aviso.style.display="none";
-
-    },2500);
 
 }

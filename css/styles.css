@@ -2,87 +2,166 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:"Segoe UI",sans-serif;
+    font-family:Segoe UI,Arial,sans-serif;
+}
+
+:root{
+
+    --verde:#177245;
+    --verde-hover:#218a57;
+
+    --fondo:#111315;
+    --panel:#1b1d20;
+    --panel2:#23262a;
+
+    --borde:#32363a;
+
+    --texto:#f2f2f2;
+    --texto2:#bcbcbc;
+
 }
 
 body{
-    background:#f2f4f8;
-    color:#222;
+
+    background:var(--fondo);
+    color:var(--texto);
+
 }
 
 .app{
-    max-width:1400px;
-    margin:25px auto;
-    background:white;
-    border-radius:18px;
+
+    width:95%;
+    max-width:1500px;
+
+    margin:20px auto;
+
+    background:var(--panel);
+
+    border-radius:16px;
+
     overflow:hidden;
-    box-shadow:0 20px 50px rgba(0,0,0,.15);
+
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+
 }
 
 .topbar{
-    background:#177245;
-    color:white;
+
+    background:var(--verde);
+
     display:flex;
+
     justify-content:space-between;
+
     align-items:center;
-    padding:25px 35px;
+
+    padding:22px 30px;
+
 }
 
 .topbar h1{
-    font-size:34px;
+
+    color:white;
+
+    font-size:38px;
+
 }
 
 .topbar p{
-    margin-top:6px;
-    opacity:.9;
+
+    color:#dff5e8;
+
+    margin-top:5px;
+
 }
 
 .estado{
-    background:#fff;
-    color:#177245;
-    padding:10px 18px;
-    border-radius:50px;
+
+    background:white;
+
+    color:var(--verde);
+
+    padding:12px 20px;
+
+    border-radius:30px;
+
     font-weight:bold;
+
 }
 
 main{
+
     display:grid;
-    grid-template-columns:1fr 1fr;
+
+    grid-template-columns:45% 55%;
+
 }
 
 section{
-    padding:35px;
+
+    padding:30px;
+
 }
 
 .mensaje{
-    border-right:1px solid #e8e8e8;
+
+    border-right:1px solid var(--borde);
+
+}
+
+.comanda{
+
+    background:var(--panel2);
+
 }
 
 h2{
+
     margin-bottom:20px;
+
 }
 
 textarea{
+
     width:100%;
-    min-height:420px;
-    resize:none;
-    border:2px solid #ddd;
+
+    min-height:250px;
+
+    background:#121416;
+
+    color:white;
+
+    border:2px solid var(--borde);
+
     border-radius:12px;
+
+    resize:none;
+
     padding:18px;
+
     font-size:16px;
+
+}
+
+textarea:focus{
+
+    outline:none;
+
+    border-color:var(--verde);
+
 }
 
 button{
 
-    margin-top:20px;
-
     width:100%;
 
-    border:none;
+    margin-top:20px;
 
-    background:#177245;
+    background:var(--verde);
 
     color:white;
+
+    border:none;
 
     padding:18px;
 
@@ -98,68 +177,136 @@ button{
 
 button:hover{
 
-    background:#115534;
-
-}
-
-.comanda{
-
-    background:#fafafa;
+    background:var(--verde-hover);
 
 }
 
 #pedido{
 
-    background:white;
+    min-height:500px;
+
+    background:#181a1c;
+
+    border:1px solid var(--borde);
 
     border-radius:12px;
 
-    border:2px dashed #d6d6d6;
+    padding:30px;
 
-    min-height:420px;
+}
 
-    padding:25px;
+.ticket{
+
+    animation:aparecer .25s ease;
+
+}
+
+.ticket-header{
+
+    text-align:center;
+
+    font-size:30px;
+
+    font-weight:bold;
+
+    color:#63dd93;
+
+    margin-bottom:25px;
+
+}
+
+.ticket hr{
+
+    border:none;
+
+    border-top:1px solid #444;
+
+    margin:20px 0;
+
+}
+
+.ticket div{
+
+    margin:12px 0;
+
+    font-size:18px;
+
+}
+
+.lista-pedido{
+
+    margin-left:20px;
+
+}
+
+.lista-pedido li{
+
+    margin:10px 0;
 
 }
 
 .vacio{
 
-    color:#999;
+    display:flex;
 
-    text-align:center;
+    align-items:center;
 
-    margin-top:170px;
+    justify-content:center;
 
-    font-size:20px;
+    height:430px;
+
+    color:#777;
+
+    font-size:22px;
 
 }
 
 footer{
 
-    padding:15px;
+    border-top:1px solid var(--borde);
 
     text-align:center;
 
     color:#888;
 
-    border-top:1px solid #eee;
+    padding:15px;
+
+}
+
+@keyframes aparecer{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(20px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
 
 }
 
 @media(max-width:900px){
 
-main{
+    main{
 
-grid-template-columns:1fr;
+        grid-template-columns:1fr;
 
-}
+    }
 
-.mensaje{
+    .mensaje{
 
-border-right:none;
+        border-right:none;
 
-border-bottom:1px solid #eee;
+        border-bottom:1px solid var(--borde);
 
-}
+    }
 
 }

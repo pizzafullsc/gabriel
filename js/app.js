@@ -32,6 +32,10 @@ document
 
     Storage.guardar(window.pedidoActual);
 
+    actualizarHistorial();
+
     alert("Pedido registrado.");
 
 });
+
+actualizarHistorial();

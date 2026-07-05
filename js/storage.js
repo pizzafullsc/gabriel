@@ -1,23 +1,23 @@
-const Storage = {
+const Storage={
 
-    guardar(pedido){
+guardar(pedido){
 
-        const pedidos = JSON.parse(localStorage.getItem("gabriel_pedidos")) || [];
+let pedidos=this.obtener();
 
-        pedido.id = Date.now();
+pedido.id=Date.now();
 
-        pedido.fecha = new Date().toLocaleString("es-UY");
+pedido.fecha=new Date().toLocaleString("es-UY");
 
-        pedidos.unshift(pedido);
+pedidos.unshift(pedido);
 
-        localStorage.setItem("gabriel_pedidos", JSON.stringify(pedidos));
+localStorage.setItem("gabriel_pedidos",JSON.stringify(pedidos));
 
-    },
+},
 
-    obtener(){
+obtener(){
 
-        return JSON.parse(localStorage.getItem("gabriel_pedidos")) || [];
+return JSON.parse(localStorage.getItem("gabriel_pedidos")) || [];
 
-    }
+}
 
 };

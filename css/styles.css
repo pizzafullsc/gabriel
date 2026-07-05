@@ -310,3 +310,49 @@ footer{
     }
 
 }
+
+.historial{
+
+    border-top:1px solid var(--borde);
+
+    padding:30px;
+
+}
+
+.item-historial{
+
+    background:#1f2225;
+
+    border:1px solid #333;
+
+    border-radius:10px;
+
+    padding:15px;
+
+    margin-bottom:12px;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.item-historial:hover{
+
+    border-color:var(--verde);
+
+    transform:translateX(4px);
+
+}
+
+.item-historial strong{
+
+    color:white;
+
+}
+
+.item-historial small{
+
+    color:#aaa;
+
+}

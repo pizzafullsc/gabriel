@@ -7,6 +7,16 @@ const Storage = {
         "Entregado"
     ],
 
+    coleccion: null,
+
+    iniciar() {
+
+        if (typeof db !== "undefined") {
+            this.coleccion = db.collection("pedidos");
+        }
+
+    },
+
     obtener() {
 
         return JSON.parse(
@@ -30,58 +40,85 @@ const Storage = {
             JSON.stringify(pedidos)
         );
 
+        if (this.coleccion) {
+
+            this.coleccion
+                .doc(String(pedido.id))
+                .set(pedido)
+                .catch(console.error);
+
+        }
+
     },
 
-    actualizar(pedidoActualizado){
+    actualizar(pedidoActualizado) {
 
-        const pedidos=this.obtener();
+        const pedidos = this.obtener();
 
-        const indice=pedidos.findIndex(
-            p=>p.id===pedidoActualizado.id
+        const indice = pedidos.findIndex(
+            p => p.id === pedidoActualizado.id
         );
 
-        if(indice===-1) return;
+        if (indice === -1) return;
 
-        pedidos[indice]=pedidoActualizado;
+        pedidos[indice] = pedidoActualizado;
 
         localStorage.setItem(
             "gabriel_pedidos",
             JSON.stringify(pedidos)
         );
 
+        if (this.coleccion) {
+
+            this.coleccion
+                .doc(String(pedidoActualizado.id))
+                .set(pedidoActualizado)
+                .catch(console.error);
+
+        }
+
     },
 
-    cambiarEstado(id){
+    cambiarEstado(id) {
 
-        const pedidos=this.obtener();
+        const pedidos = this.obtener();
 
-        const pedido=pedidos.find(
-            p=>p.id===id
+        const pedido = pedidos.find(
+            p => p.id === id
         );
 
-        if(!pedido) return null;
+        if (!pedido) return null;
 
-        let indice=this.estados.indexOf(
+        let indice = this.estados.indexOf(
             pedido.estado
         );
 
         indice++;
 
-        if(indice>=this.estados.length)
-            indice=0;
+        if (indice >= this.estados.length)
+            indice = 0;
 
-        pedido.estado=this.estados[indice];
+        pedido.estado = this.estados[indice];
 
         localStorage.setItem(
             "gabriel_pedidos",
             JSON.stringify(pedidos)
         );
 
+        if (this.coleccion) {
+
+            this.coleccion
+                .doc(String(pedido.id))
+                .set(pedido)
+                .catch(console.error);
+
+        }
+
         return pedido;
 
     },
 
-    borrar(){
+    borrar() {
 
         localStorage.removeItem(
             "gabriel_pedidos"
@@ -90,3 +127,5 @@ const Storage = {
     }
 
 };
+
+Storage.iniciar();

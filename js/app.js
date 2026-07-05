@@ -2,12 +2,36 @@ document
 .getElementById("interpretar")
 .addEventListener("click",()=>{
 
-    const mensaje =
-        document.getElementById("mensaje").value;
+    const texto=document.getElementById("mensaje").value;
 
-    const datos =
-        interpretarPedido(mensaje);
+    if(texto.trim()===""){
+        alert("Pegá un mensaje primero.");
+        return;
+    }
 
-    mostrarComanda(datos);
+    const pedido=interpretarPedido(texto);
+
+    mostrarComanda(pedido);
+
+    window.pedidoActual=pedido;
+
+});
+
+
+document
+.getElementById("registrar")
+.addEventListener("click",()=>{
+
+    if(!window.pedidoActual){
+
+        alert("Primero interpretá un pedido.");
+
+        return;
+
+    }
+
+    Storage.guardar(window.pedidoActual);
+
+    alert("Pedido registrado.");
 
 });

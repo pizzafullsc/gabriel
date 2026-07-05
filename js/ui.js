@@ -1,44 +1,33 @@
-function mostrarComanda(datos){
+function actualizarHistorial() {
 
-    const items = (datos.pedido || "")
-        .split("\n")
-        .filter(l => l.trim() !== "")
-        .map(l => `<li>${l}</li>`)
-        .join("");
+    const pedidos = Storage.obtener();
 
-    document.getElementById("pedido").innerHTML = `
+    const div = document.getElementById("historial");
 
-        <div class="ticket">
+    if (pedidos.length === 0) {
+        div.innerHTML = "<p class='vacio'>Todavía no hay pedidos.</p>";
+        return;
+    }
 
-            <div class="ticket-header">
-                🍕 COMANDA
-            </div>
+    div.innerHTML = pedidos.map(p => {
 
-            <div class="cliente">
-                👤 ${datos.cliente}
-            </div>
+        const cantidad = p.pedido
+            .split("\n")
+            .filter(x => x.trim() !== "")
+            .length;
 
-            <div>📞 ${datos.telefono}</div>
+        return `
+        <div class="item-historial">
 
-            <div>📍 ${datos.direccion}</div>
+            <strong>🔴 ${p.cliente}</strong><br>
 
-            <hr>
+            <small>${p.fecha}</small><br>
 
-            <h3>🛒 Pedido</h3>
-
-            <ul class="lista-pedido">
-                ${items}
-            </ul>
-
-            <hr>
-
-            <div>💳 ${datos.pago}</div>
-
-            <div>💵 Cambio: ${datos.cambio}</div>
-
-            <div>📝 ${datos.observaciones}</div>
+            🍕 ${cantidad} producto${cantidad>1?"s":""}
 
         </div>
+        `;
 
-    `;
+    }).join("");
+
 }

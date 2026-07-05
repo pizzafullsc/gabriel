@@ -5,8 +5,11 @@ document
     const texto=document.getElementById("mensaje").value;
 
     if(texto.trim()===""){
-        alert("Pegá un mensaje primero.");
+
+        alert("Pegá un mensaje.");
+
         return;
+
     }
 
     const pedido=interpretarPedido(texto);
@@ -37,5 +40,3 @@ document
     alert("Pedido registrado.");
 
 });
-
-actualizarHistorial();

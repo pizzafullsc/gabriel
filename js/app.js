@@ -1,3 +1,5 @@
+let pedidoActual = null;
+
 document
 .getElementById("interpretar")
 .addEventListener("click",()=>{
@@ -5,38 +7,43 @@ document
     const texto=document.getElementById("mensaje").value;
 
     if(texto.trim()===""){
-
         alert("Pegá un mensaje.");
-
         return;
-
     }
 
-    const pedido=interpretarPedido(texto);
+    pedidoActual=interpretarPedido(texto);
 
-    mostrarComanda(pedido);
-
-    window.pedidoActual=pedido;
+    mostrarComanda(pedidoActual);
 
 });
 
-
 document
 .getElementById("registrar")
-.addEventListener("click",()=>{
+.addEventListener("click",async()=>{
 
-    if(!window.pedidoActual){
-
+    if(!pedidoActual){
         alert("Primero interpretá un pedido.");
-
         return;
-
     }
 
-    Storage.guardar(window.pedidoActual);
+    Storage.guardar(pedidoActual);
 
     actualizarHistorial();
 
-    alert("Pedido registrado.");
+    const enviado = await Sync.enviar(pedidoActual);
+
+    if(enviado){
+
+        console.log("Pedido sincronizado.");
+
+    }else{
+
+        console.log("Quedó pendiente de sincronización.");
+
+    }
+
+    pedidoActual=null;
+
+    document.getElementById("mensaje").value="";
 
 });

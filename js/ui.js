@@ -1,54 +1,55 @@
-function mostrarComanda(datos) {
+function mostrarComanda(datos){
 
-    const items = (datos.pedido || "")
+    const estado = datos.estado || "Nuevo";
+
+    const items=(datos.pedido||"")
         .split("\n")
-        .filter(i => i.trim() !== "")
-        .map(i => `<li>${i}</li>`)
+        .filter(i=>i.trim()!="")
+        .map(i=>`<li>${i}</li>`)
         .join("");
 
-    document.getElementById("pedido").innerHTML = `
-        <div class="ticket">
+    document.getElementById("pedido").innerHTML=`
 
-            <div class="ticket-header">
-                🍕 COMANDA
-            </div>
+    <div class="ticket">
 
-            <p><strong>👤 ${datos.cliente}</strong></p>
-            <p>📞 ${datos.telefono}</p>
-            <p>📍 ${datos.direccion}</p>
-
-            <hr>
-
-            <h3>Pedido</h3>
-
-            <ul class="lista-pedido">
-                ${items}
-            </ul>
-
-            <hr>
-
-            <p>💳 ${datos.pago}</p>
-            <p>💵 Cambio ${datos.cambio}</p>
-            <p>📝 ${datos.observaciones}</p>
-
-            <hr>
-
-            <button id="btnEstado">
-                ${iconoEstado(datos.estado)} ${datos.estado}
-            </button>
-
+        <div class="ticket-header">
+            🍕 COMANDA
         </div>
+
+        <p><strong>👤 ${datos.cliente}</strong></p>
+        <p>📞 ${datos.telefono}</p>
+        <p>📍 ${datos.direccion}</p>
+
+        <hr>
+
+        <ul class="lista-pedido">
+            ${items}
+        </ul>
+
+        <hr>
+
+        <p>💳 ${datos.pago}</p>
+        <p>💵 Cambio ${datos.cambio}</p>
+        <p>📝 ${datos.observaciones}</p>
+
+        <hr>
+
+        <button id="btnEstado">
+            ${iconoEstado(estado)} ${estado}
+        </button>
+
+    </div>
     `;
 
-    const boton = document.getElementById("btnEstado");
+    if(datos.id){
 
-    if (datos.id) {
+        document
+        .getElementById("btnEstado")
+        .addEventListener("click",()=>{
 
-        boton.addEventListener("click", () => {
+            const pedido=Storage.cambiarEstado(datos.id);
 
-            const actualizado = Storage.cambiarEstado(datos.id);
-
-            mostrarComanda(actualizado);
+            mostrarComanda(pedido);
 
             actualizarHistorial();
 
@@ -58,64 +59,71 @@ function mostrarComanda(datos) {
 
 }
 
-function actualizarHistorial() {
+function actualizarHistorial(){
 
-    const pedidos = Storage.obtener();
+    const historial=document.getElementById("historial");
 
-    const historial = document.getElementById("historial");
+    const pedidos=Storage.obtener();
 
-    if (!historial) return;
+    if(!historial)return;
 
-    if (pedidos.length === 0) {
+    if(pedidos.length===0){
 
-        historial.innerHTML =
-            "<p class='vacio'>Todavía no hay pedidos.</p>";
+        historial.innerHTML="<p class='vacio'>Todavía no hay pedidos.</p>";
 
         return;
 
     }
 
-    historial.innerHTML = "";
+    historial.innerHTML="";
 
-    pedidos.forEach(pedido => {
+    pedidos.forEach(p=>{
 
-        const tarjeta = document.createElement("div");
+        const card=document.createElement("div");
 
-        tarjeta.className = "item-historial";
+        card.className="item-historial";
 
-        tarjeta.innerHTML = `
-            <strong>${iconoEstado(pedido.estado)} ${pedido.cliente}</strong><br>
-            <small>${pedido.fecha}</small><br>
-            ${pedido.estado}
+        card.innerHTML=`
+
+            <strong>${iconoEstado(p.estado||"Nuevo")} ${p.cliente}</strong><br>
+
+            <small>${p.fecha}</small><br>
+
+            ${p.estado||"Nuevo"}
+
         `;
 
-        tarjeta.addEventListener("click", () => {
+        card.addEventListener("click",()=>{
 
-            mostrarComanda(pedido);
+            mostrarComanda(p);
 
         });
 
-        historial.appendChild(tarjeta);
+        card.addEventListener("dblclick",()=>{
+
+            Storage.cambiarEstado(p.id);
+
+            actualizarHistorial();
+
+        });
+
+        historial.appendChild(card);
 
     });
 
 }
 
-function iconoEstado(estado){
+function iconoEstado(e){
 
-    switch(estado){
+    switch(e){
 
-        case "Preparando":
-            return "🟡";
+        case "Preparando": return "🟡";
 
-        case "Listo":
-            return "🟢";
+        case "Listo": return "🟢";
 
-        case "Entregado":
-            return "🔵";
+        case "Entregado": return "🔵";
 
-        default:
-            return "🔴";
+        default: return "🔴";
 
     }
 

@@ -54,19 +54,20 @@ body {
     background: #fff;
     color: #000;
     font-family: "Courier New", monospace;
-    font-size: 11px;
-    line-height: 1.25;
+    font-size: 10.5px;
+    line-height: 1.2;
 }
 
 .ticket {
     width: 58mm;
-    padding: 4mm 3mm;
+    padding: 3mm 2.5mm;
 }
 
 h1 {
-    margin: 0 0 3mm;
+    margin: 0 0 1mm;
     text-align: center;
-    font-size: 16px;
+    font-size: 22px;
+    font-weight: 800;
     letter-spacing: 0;
 }
 
@@ -74,13 +75,21 @@ h1 {
     text-align: center;
 }
 
+.tipo {
+    margin-top: 1mm;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
 .linea {
     border-top: 1px dashed #000;
-    margin: 3mm 0;
+    margin: 2mm 0;
 }
 
 .fila {
-    margin-bottom: 1.5mm;
+    margin-bottom: 1mm;
 }
 
 .etiqueta {
@@ -88,19 +97,19 @@ h1 {
 }
 
 ul {
-    margin: 1.5mm 0 0;
-    padding-left: 4mm;
+    margin: 1mm 0 0;
+    padding-left: 3.5mm;
 }
 
 li {
-    margin-bottom: 1mm;
+    margin-bottom: .8mm;
 }
 </style>
 </head>
 <body>
 <div class="ticket">
-    <h1>GABRIEL</h1>
-    <div class="centrado">Pedido #${this.escaparHtml(this.numeroPedido(pedido))}</div>
+    <h1>PEDIDO #${this.escaparHtml(this.numeroPedido(pedido))}</h1>
+    <div class="tipo">${this.escaparHtml(this.tipoPedido(pedido))}</div>
     <div class="centrado">${this.escaparHtml(this.fechaPedido(pedido))}</div>
 
     <div class="linea"></div>
@@ -134,6 +143,12 @@ li {
     fechaPedido(pedido) {
 
         return pedido.fecha || new Date().toLocaleString("es-UY");
+
+    },
+
+    tipoPedido(pedido) {
+
+        return pedido.tipo || pedido.tipoPedido || pedido.orderType || "";
 
     },
 

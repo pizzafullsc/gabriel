@@ -53,6 +53,29 @@ body{
     margin-top:4px;
 }
 
+.brand-block{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+
+.brand-logo{
+    max-height:48px;
+    width:auto;
+    object-fit:contain;
+    display:block;
+    background:rgba(255,255,255,0.95);
+    padding:6px 10px;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
+
+.brand-subtitle{
+    margin:0;
+    color:#d7efe3;
+    font-size:0.95rem;
+}
+
 .estado{
     background:white;
     color:#14633f;

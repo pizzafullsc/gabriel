@@ -63,7 +63,7 @@ function mostrarComanda(datos) {
         <hr>
 
         <p><strong>Pago:</strong> ${escaparHtml(datos.pago)}</p>
-        <p><strong>Vuelto:</strong> ${escaparHtml(datos.cambio)}</p>
+        <p><strong>Vuelto para:</strong> ${escaparHtml(datos.cambio)}</p>
         <p><strong>Notas de cocina:</strong> ${escaparHtml(datos.observaciones)}</p>
 
         <hr>

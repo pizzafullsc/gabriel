@@ -131,7 +131,7 @@ li {
     <div class="linea"></div>
 
     <div class="fila"><span class="etiqueta">Pago:</span> ${this.escaparHtml(pedido.pago)}</div>
-    <div class="fila"><span class="etiqueta">Vuelto:</span> ${this.escaparHtml(pedido.cambio)}</div>
+    <div class="fila"><span class="etiqueta">Vuelto para:</span> ${this.escaparHtml(pedido.cambio)}</div>
     <div class="fila"><span class="etiqueta">Notas:</span> ${this.escaparHtml(pedido.observaciones)}</div>
 </div>
 </body>

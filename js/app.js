@@ -75,6 +75,14 @@ function iniciarFormularioPedido() {
         .addEventListener("keydown", manejarTeclaObservaciones);
 
     document
+        .getElementById("pago")
+        .addEventListener("input", actualizarVisibilidadVuelto);
+
+    document
+        .getElementById("pago")
+        .addEventListener("change", actualizarVisibilidadVuelto);
+
+    document
         .querySelectorAll("[data-order-type]")
         .forEach(boton => {
             boton.addEventListener("click", () => seleccionarTipoPedido(boton.dataset.orderType));
@@ -146,6 +154,23 @@ function sincronizarVistaFormulario() {
     document.querySelector("[data-section='delivery']").hidden = !esDelivery;
     document.querySelector("[data-section='table']").hidden = !esMesa;
     document.getElementById("customer-question").textContent = preguntasCliente[tipo];
+    actualizarVisibilidadVuelto();
+
+}
+
+function actualizarVisibilidadVuelto() {
+
+    const campo = document.getElementById("campo-vuelto");
+    const input = document.getElementById("pago");
+    const esEfectivo = String(input.value || "").trim().toLowerCase() === "efectivo";
+
+    campo.hidden = !esEfectivo;
+
+    if (!esEfectivo) {
+        document.getElementById("cambio").value = "";
+    }
+
+    actualizarPreviewDesdeFormulario();
 
 }
 
@@ -358,8 +383,10 @@ function poblarFormulario(datos) {
     document.getElementById("referencia").value = datos.referencia || "";
     document.getElementById("mesa").value = datos.mesa || "";
     document.getElementById("pago").value = datos.pago || "";
+    document.getElementById("cambio").value = datos.cambio || "";
     document.getElementById("observaciones").value = datos.observaciones || "";
     document.getElementById("notas-cliente").value = "";
+    actualizarVisibilidadVuelto();
 
     estadoFormulario.productos = normalizarProductos(datos.pedido);
     renderizarProductos();
@@ -499,7 +526,7 @@ function construirPedidoDesdeFormulario() {
         pedido,
         productos: estadoFormulario.productos.map(producto => ({ ...producto })),
         pago: document.getElementById("pago").value.trim(),
-        cambio: "",
+        cambio: document.getElementById("cambio").value.trim(),
         observaciones: document.getElementById("observaciones").value.trim()
     };
 

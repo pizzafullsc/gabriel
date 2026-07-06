@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cocina</title>
+
+<title>Gabriel Cocina</title>
 
 <link rel="stylesheet" href="css/styles.css">
 
 <style>
+
 body{
     background:#111;
     color:white;
@@ -15,41 +18,111 @@ body{
     font-family:Segoe UI,Arial,sans-serif;
 }
 
-h1{
+header{
     padding:20px;
+    border-bottom:1px solid #333;
 }
 
 #estado{
-    padding:0 20px 20px;
-    color:#8fd18f;
+    color:#7fe28b;
+    margin-top:8px;
 }
 
 #cocina{
+
     padding:20px;
+
     display:grid;
+
     gap:20px;
-    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+
+    grid-template-columns:repeat(auto-fill,minmax(330px,1fr));
+
 }
 
 .tarjeta{
+
     background:#222;
-    border-left:8px solid #28a745;
+
     border-radius:10px;
+
+    border-left:8px solid #d63031;
+
     padding:20px;
+
+    animation:aparece .25s;
+
+}
+
+.tarjeta.preparando{
+
+    border-left-color:#f1c40f;
+
+}
+
+.tarjeta.listo{
+
+    border-left-color:#2ecc71;
+
+}
+
+.tarjeta h2{
+
+    margin:0 0 10px;
+
 }
 
 pre{
+
     white-space:pre-wrap;
+
+    font-family:inherit;
+
+    margin:10px 0;
+
 }
+
+hr{
+
+    border:none;
+
+    border-top:1px solid #444;
+
+    margin:12px 0;
+
+}
+
+@keyframes aparece{
+
+from{
+
+opacity:0;
+transform:translateY(10px);
+
+}
+
+to{
+
+opacity:1;
+transform:translateY(0);
+
+}
+
+}
+
 </style>
 
 </head>
 
 <body>
 
+<header>
+
 <h1>🍕 Cocina</h1>
 
 <div id="estado">Conectando...</div>
+
+</header>
 
 <div id="cocina"></div>
 
@@ -64,44 +137,71 @@ firebase.initializeApp(firebaseConfig);
 
 const db=firebase.firestore();
 
-document.getElementById("estado").textContent="Conectado a Firebase";
-
-db.collection("pedidos").get()
-.then((snapshot)=>{
+db.collection("pedidos")
+.onSnapshot((snapshot)=>{
 
     document.getElementById("estado").textContent=
-        "Pedidos encontrados: "+snapshot.size;
+    "Pedidos activos: "+snapshot.size;
 
     const cocina=document.getElementById("cocina");
 
-    snapshot.forEach((doc)=>{
+    cocina.innerHTML="";
 
-        const p=doc.data();
+    const pedidos=[];
 
-        const tarjeta=document.createElement("div");
+    snapshot.forEach(doc=>{
 
-        tarjeta.className="tarjeta";
-
-        tarjeta.innerHTML=`
-            <h2>${p.cliente}</h2>
-            <p>${p.estado}</p>
-            <pre>${p.pedido}</pre>
-        `;
-
-        cocina.appendChild(tarjeta);
+        pedidos.push(doc.data());
 
     });
 
-})
-.catch((e)=>{
+    pedidos.sort((a,b)=>a.id-b.id);
 
-    document.getElementById("estado").textContent=e.message;
+    pedidos.forEach(p=>{
 
-    console.error(e);
+        if(p.estado==="Entregado")
+            return;
 
-});
+        const card=document.createElement("div");
+
+        let clase="";
+
+        if(p.estado==="Preparando")
+            clase="preparando";
+
+        if(p.estado==="Listo")
+            clase="listo";
+
+        card.className="tarjeta "+clase;
+
+        card.innerHTML=`
+
+            <h2>👤 ${p.cliente}</h2>
+
+            <strong>${p.estado}</strong>
+
+            <hr>
+
+            <pre>${p.pedido}</pre>
+
+            <hr>
+
+            <div>📍 ${p.direccion}</div>
+
+            <div>💳 ${p.pago}</div>
+
+            <div>📝 ${p.observaciones||""}</div>
+
+        `;
+
+        cocina.appendChild(card);
+
+    });
+
+},console.error);
 
 </script>
 
 </body>
+
 </html>

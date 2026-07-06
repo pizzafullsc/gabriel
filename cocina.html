@@ -29,85 +29,53 @@ header{
 }
 
 #cocina{
-
     padding:20px;
-
     display:grid;
-
     gap:20px;
-
     grid-template-columns:repeat(auto-fill,minmax(330px,1fr));
-
 }
 
 .tarjeta{
-
     background:#222;
-
     border-radius:10px;
-
     border-left:8px solid #d63031;
-
     padding:20px;
-
     animation:aparece .25s;
-
 }
 
 .tarjeta.preparando{
-
     border-left-color:#f1c40f;
-
 }
 
 .tarjeta.listo{
-
     border-left-color:#2ecc71;
-
 }
 
 .tarjeta h2{
-
     margin:0 0 10px;
-
 }
 
 pre{
-
     white-space:pre-wrap;
-
     font-family:inherit;
-
     margin:10px 0;
-
 }
 
 hr{
-
     border:none;
-
     border-top:1px solid #444;
-
     margin:12px 0;
-
 }
 
 @keyframes aparece{
-
 from{
-
 opacity:0;
 transform:translateY(10px);
-
 }
-
 to{
-
 opacity:1;
 transform:translateY(0);
-
 }
-
 }
 
 </style>
@@ -140,27 +108,23 @@ const db=firebase.firestore();
 db.collection("pedidos")
 .onSnapshot((snapshot)=>{
 
-    document.getElementById("estado").textContent=
-    "Pedidos activos: "+snapshot.size;
-
     const cocina=document.getElementById("cocina");
-
     cocina.innerHTML="";
 
     const pedidos=[];
 
     snapshot.forEach(doc=>{
-
         pedidos.push(doc.data());
-
     });
 
     pedidos.sort((a,b)=>a.id-b.id);
 
-    pedidos.forEach(p=>{
+    const activos=pedidos.filter(p=>p.estado!=="Entregado");
 
-        if(p.estado==="Entregado")
-            return;
+    document.getElementById("estado").textContent=
+        "Pedidos activos: "+activos.length;
+
+    activos.forEach(p=>{
 
         const card=document.createElement("div");
 
@@ -175,7 +139,6 @@ db.collection("pedidos")
         card.className="tarjeta "+clase;
 
         card.innerHTML=`
-
             <h2>👤 ${p.cliente}</h2>
 
             <strong>${p.estado}</strong>
@@ -191,7 +154,6 @@ db.collection("pedidos")
             <div>💳 ${p.pago}</div>
 
             <div>📝 ${p.observaciones||""}</div>
-
         `;
 
         cocina.appendChild(card);
@@ -203,5 +165,4 @@ db.collection("pedidos")
 </script>
 
 </body>
-
 </html>

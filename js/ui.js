@@ -29,33 +29,18 @@ function mostrarComanda(datos){
         <hr>
 
         <p>💳 ${datos.pago}</p>
-        <p>💵 Cambio ${datos.cambio}</p>
-        <p>📝 ${datos.observaciones}</p>
+        <p>💵 Cambio ${datos.cambio||""}</p>
+        <p>📝 ${datos.observaciones||""}</p>
 
         <hr>
 
-        <button id="btnEstado">
+        <p class="estado-pedido">
+            <strong>Estado:</strong>
             ${iconoEstado(estado)} ${estado}
-        </button>
+        </p>
 
     </div>
     `;
-
-    if(datos.id){
-
-        document
-        .getElementById("btnEstado")
-        .addEventListener("click",()=>{
-
-            const pedido=Storage.cambiarEstado(datos.id);
-
-            mostrarComanda(pedido);
-
-            actualizarHistorial();
-
-        });
-
-    }
 
 }
 
@@ -63,14 +48,13 @@ function actualizarHistorial(){
 
     const historial=document.getElementById("historial");
 
-    const pedidos=Storage.obtener();
-
     if(!historial)return;
+
+    const pedidos=Storage.obtener();
 
     if(pedidos.length===0){
 
         historial.innerHTML="<p class='vacio'>Todavía no hay pedidos.</p>";
-
         return;
 
     }
@@ -87,7 +71,7 @@ function actualizarHistorial(){
 
             <strong>${iconoEstado(p.estado||"Nuevo")} ${p.cliente}</strong><br>
 
-            <small>${p.fecha}</small><br>
+            <small>${p.fecha||""}</small><br>
 
             ${p.estado||"Nuevo"}
 
@@ -96,14 +80,6 @@ function actualizarHistorial(){
         card.addEventListener("click",()=>{
 
             mostrarComanda(p);
-
-        });
-
-        card.addEventListener("dblclick",()=>{
-
-            Storage.cambiarEstado(p.id);
-
-            actualizarHistorial();
 
         });
 
@@ -117,13 +93,17 @@ function iconoEstado(e){
 
     switch(e){
 
-        case "Preparando": return "🟡";
+        case "Preparando":
+            return "🟡";
 
-        case "Listo": return "🟢";
+        case "Listo":
+            return "🟢";
 
-        case "Entregado": return "🔵";
+        case "Entregado":
+            return "🔵";
 
-        default: return "🔴";
+        default:
+            return "🔴";
 
     }
 

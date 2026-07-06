@@ -21,6 +21,13 @@ function mostrarComanda(datos) {
 
     const id = datos.firestoreId || datos.id || "";
     const puedeEntregar = id && estado === "Listo";
+    const puedeImprimir = id || datos.cliente || datos.pedido;
+    const accionImprimir = puedeImprimir
+        ? `
+        <button type="button" data-imprimir-pedido>
+            &#128424; Imprimir
+        </button>`
+        : "";
     const accionEntregar = puedeEntregar
         ? `
         <button type="button" data-entregar-id="${escaparHtml(id)}">
@@ -60,6 +67,7 @@ function mostrarComanda(datos) {
         </p>
 
         ${accionEntregar}
+        ${accionImprimir}
 
     </div>
     `;

@@ -1,6 +1,7 @@
 let pedidoActual = null;
 let cancelarEscuchaPedidos = null;
 let pedidoSeleccionadoId = null;
+let pedidoVisible = null;
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -18,7 +19,7 @@ document
 
 document
     .getElementById("pedido")
-    .addEventListener("click", entregarPedido);
+    .addEventListener("click", manejarAccionPedido);
 
 function iniciarPedidosEnTiempoReal() {
 
@@ -37,7 +38,7 @@ function iniciarPedidosEnTiempoReal() {
             );
 
             if (seleccionado) {
-                mostrarComanda(seleccionado);
+                mostrarPedidoVisible(seleccionado);
             }
 
         }
@@ -61,7 +62,7 @@ function interpretarMensaje() {
     pedidoActual = interpretarPedido(texto);
     pedidoSeleccionadoId = null;
 
-    mostrarComanda(pedidoActual);
+    mostrarPedidoVisible(pedidoActual);
 
 }
 
@@ -92,6 +93,7 @@ async function registrarPedido() {
 
         pedidoActual = null;
         pedidoSeleccionadoId = null;
+        pedidoVisible = null;
 
         document.getElementById("mensaje").value = "";
 
@@ -115,7 +117,33 @@ async function registrarPedido() {
 function seleccionarPedido(pedido) {
 
     pedidoSeleccionadoId = pedido.firestoreId || pedido.id;
+    mostrarPedidoVisible(pedido);
+
+}
+
+function mostrarPedidoVisible(pedido) {
+
+    pedidoVisible = pedido;
     mostrarComanda(pedido);
+
+}
+
+function manejarAccionPedido(event) {
+
+    imprimirPedido(event);
+    entregarPedido(event);
+
+}
+
+function imprimirPedido(event) {
+
+    const boton = event.target.closest("[data-imprimir-pedido]");
+
+    if (!boton) {
+        return;
+    }
+
+    TicketPrinter.imprimir(pedidoVisible);
 
 }
 

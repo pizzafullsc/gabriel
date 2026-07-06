@@ -16,75 +16,191 @@
 <div class="app">
 
 <header class="topbar">
+    <div>
+        <h1>Gabriel</h1>
+        <p>Operaciones de pedido</p>
+    </div>
 
-<div>
-
-<h1>🍕 Gabriel</h1>
-
-<p>Centro de operaciones</p>
-
-</div>
-
-<div class="estado">
-🟢 Operativo
-</div>
-
+    <div class="estado">
+        Operativo
+    </div>
 </header>
 
 <main>
 
-<section class="mensaje">
+<section class="order-entry" aria-labelledby="order-entry-title">
 
-<h2>📩 Nuevo pedido</h2>
+    <h2 id="order-entry-title">Nuevo pedido</h2>
 
-<textarea
-id="mensaje"
-placeholder="Pegá aquí el mensaje de WhatsApp..."></textarea>
+    <div class="top-actions">
+        <button type="button" id="nuevo-pedido">Nuevo pedido</button>
+        <button type="button" id="pegar-whatsapp">Pegar WhatsApp</button>
+    </div>
 
-<button id="interpretar">
-Interpretar pedido
-</button>
+    <form id="formulario-pedido">
+
+        <fieldset class="order-type">
+            <legend>Tipo de pedido</legend>
+            <div
+                class="segmented-control"
+                role="radiogroup"
+                aria-label="Tipo de pedido">
+                <button
+                    type="button"
+                    role="radio"
+                    aria-checked="true"
+                    tabindex="0"
+                    data-order-type="delivery">
+                    Delivery
+                </button>
+                <button
+                    type="button"
+                    role="radio"
+                    aria-checked="false"
+                    tabindex="-1"
+                    data-order-type="pickup">
+                    Retiro
+                </button>
+                <button
+                    type="button"
+                    role="radio"
+                    aria-checked="false"
+                    tabindex="-1"
+                    data-order-type="dine-in">
+                    Salón
+                </button>
+            </div>
+        </fieldset>
+
+        <section class="form-section" data-section="table" hidden>
+            <h3>Mesa</h3>
+            <p>¿Qué mesa?</p>
+            <label>
+                <span>Mesa</span>
+                <input id="mesa" name="mesa" autocomplete="off">
+            </label>
+        </section>
+
+        <section class="form-section">
+            <h3>Cliente</h3>
+            <p id="customer-question">¿A quién le avisamos?</p>
+            <div class="field-grid">
+                <label>
+                    <span>Teléfono</span>
+                    <input id="telefono" name="telefono" inputmode="tel" autocomplete="tel">
+                </label>
+                <label>
+                    <span>Nombre</span>
+                    <input id="cliente" name="cliente" autocomplete="name">
+                </label>
+            </div>
+        </section>
+
+        <section class="form-section" data-section="delivery">
+            <h3>Delivery</h3>
+            <p>¿A dónde lo llevamos?</p>
+            <label>
+                <span>Dirección</span>
+                <input id="direccion" name="direccion" autocomplete="street-address">
+            </label>
+            <label>
+                <span>Referencia</span>
+                <input id="referencia" name="referencia" autocomplete="off">
+            </label>
+        </section>
+
+        <section class="form-section">
+            <h3>Productos</h3>
+            <p>¿Qué va a llevar?</p>
+            <div class="product-entry">
+                <input
+                    id="producto-busqueda"
+                    name="producto"
+                    autocomplete="off"
+                    placeholder="Buscar producto">
+                <button type="button" id="agregar-producto">Agregar</button>
+            </div>
+
+            <div id="lista-productos" class="product-list" aria-live="polite">
+                <p class="vacio">Todavía no hay productos.</p>
+            </div>
+        </section>
+
+        <section class="form-section">
+            <h3>Observaciones para cocina</h3>
+            <p>¿Algo que deba saber la cocina?</p>
+            <label>
+                <span>Observaciones</span>
+                <textarea id="observaciones" name="observaciones"></textarea>
+            </label>
+        </section>
+
+        <section class="form-section">
+            <h3>Pago</h3>
+            <p>¿Cómo lo pagan?</p>
+            <label>
+                <span>Método de pago</span>
+                <input id="pago" name="pago" list="metodos-pago" autocomplete="off">
+                <datalist id="metodos-pago">
+                    <option value="Efectivo"></option>
+                    <option value="Débito"></option>
+                    <option value="Crédito"></option>
+                    <option value="Transferencia"></option>
+                    <option value="Mercado Pago"></option>
+                </datalist>
+            </label>
+        </section>
+
+        <button type="submit" id="registrar">
+            Registrar pedido
+        </button>
+
+    </form>
+
+    <dialog id="whatsapp-dialog">
+        <form method="dialog" class="paste-flow">
+            <h3>Pegar WhatsApp</h3>
+            <p>Pegá el mensaje acá y Gabriel completa los campos del pedido.</p>
+            <textarea
+                id="mensaje"
+                placeholder="Pegá el mensaje de WhatsApp..."></textarea>
+            <div class="dialog-actions">
+                <button type="button" id="cancelar-whatsapp">Cancelar</button>
+                <button type="button" id="interpretar">Cargar pedido</button>
+            </div>
+        </form>
+    </dialog>
 
 </section>
 
 <section class="comanda">
 
-<h2>🍕 Comanda</h2>
+    <h2>Comanda</h2>
 
-<div id="pedido">
-
-<p class="vacio">
-Esperando un pedido...
-</p>
-
-</div>
-
-<button id="registrar">
-Registrar pedido
-</button>
+    <div id="pedido">
+        <p class="vacio">
+            Armá un pedido para ver la comanda.
+        </p>
+    </div>
 
 </section>
 
 <aside class="historial">
 
-<h2>📋 Cola de pedidos</h2>
+    <h2>Cola de pedidos</h2>
 
-<div id="historial">
-
-<p class="vacio">
-Todavía no hay pedidos.
-</p>
-
-</div>
+    <div id="historial">
+        <p class="vacio">
+            Todavía no hay pedidos.
+        </p>
+    </div>
 
 </aside>
 
 </main>
 
 <footer>
-
-Gabriel MVP · develop
-
+    Gabriel MVP - desarrollo
 </footer>
 
 </div>

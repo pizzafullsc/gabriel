@@ -33,6 +33,10 @@ const TicketPrinter = {
             .filter(item => item.trim() !== "")
             .map(item => `<li>${this.escaparHtml(item)}</li>`)
             .join("");
+        const ubicacionEtiqueta = pedido.tipoPedido === "dine-in" ? "Mesa" : "Dirección";
+        const referencia = pedido.referencia
+            ? `<div class="fila"><span class="etiqueta">Referencia:</span> ${this.escaparHtml(pedido.referencia)}</div>`
+            : "";
 
         return `<!DOCTYPE html>
 <html lang="es">
@@ -116,7 +120,8 @@ li {
 
     <div class="fila"><span class="etiqueta">Cliente:</span> ${this.escaparHtml(pedido.cliente)}</div>
     <div class="fila"><span class="etiqueta">Telefono:</span> ${this.escaparHtml(pedido.telefono)}</div>
-    <div class="fila"><span class="etiqueta">Direccion:</span> ${this.escaparHtml(pedido.direccion)}</div>
+    <div class="fila"><span class="etiqueta">${ubicacionEtiqueta}:</span> ${this.escaparHtml(pedido.direccion)}</div>
+    ${referencia}
 
     <div class="linea"></div>
 
@@ -126,7 +131,7 @@ li {
     <div class="linea"></div>
 
     <div class="fila"><span class="etiqueta">Pago:</span> ${this.escaparHtml(pedido.pago)}</div>
-    <div class="fila"><span class="etiqueta">Cambio:</span> ${this.escaparHtml(pedido.cambio)}</div>
+    <div class="fila"><span class="etiqueta">Vuelto:</span> ${this.escaparHtml(pedido.cambio)}</div>
     <div class="fila"><span class="etiqueta">Notas:</span> ${this.escaparHtml(pedido.observaciones)}</div>
 </div>
 </body>

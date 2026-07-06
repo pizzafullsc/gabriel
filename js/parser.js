@@ -1,44 +1,105 @@
-function extraerCampo(texto, campo) {
+function normalizarTexto(valor) {
 
-    const regex = new RegExp(
-        campo + "\\s*:\\s*([\\s\\S]*?)(?=\\n[A-Za-zÁÉÍÓÚáéíóú ]+\\s*:|$)",
-        "i"
-    );
-
-    const resultado = texto.match(regex);
-
-    return resultado ? resultado[1].trim() : "";
+    return String(valor || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
 
 }
 
-function interpretarPedido(texto){
+function extraerCampo(texto, campos) {
+
+    const nombres = Array.isArray(campos) ? campos : [campos];
+    const lineas = String(texto || "").split(/\r?\n/);
+    const etiquetasBuscadas = nombres.map(normalizarTexto);
+    const etiquetasConocidas = [
+        "cliente",
+        "nombre",
+        "name",
+        "celular",
+        "telefono",
+        "phone",
+        "direccion",
+        "address",
+        "referencia",
+        "reference",
+        "pedido",
+        "productos",
+        "order",
+        "pago",
+        "payment",
+        "cambio",
+        "observaciones",
+        "notas",
+        "notes",
+        "mesa",
+        "table"
+    ];
+
+    let capturando = false;
+    const resultado = [];
+
+    for (const linea of lineas) {
+
+        const separador = linea.indexOf(":");
+
+        if (separador > -1) {
+
+            const etiqueta = normalizarTexto(linea.slice(0, separador).trim());
+            const valor = linea.slice(separador + 1).trim();
+
+            if (etiquetasBuscadas.includes(etiqueta)) {
+                capturando = true;
+                resultado.push(valor);
+                continue;
+            }
+
+            if (capturando && etiquetasConocidas.includes(etiqueta)) {
+                break;
+            }
+
+        }
+
+        if (capturando) {
+            resultado.push(linea.trim());
+        }
+
+    }
+
+    return resultado.join("\n").trim();
+
+}
+
+function interpretarPedido(texto) {
 
     return {
 
         cliente:
-            extraerCampo(texto,"Cliente") ||
-            extraerCampo(texto,"Nombre"),
+            extraerCampo(texto, ["Cliente", "Nombre", "Name"]),
 
         telefono:
-            extraerCampo(texto,"Celular") ||
-            extraerCampo(texto,"Telefono") ||
-            extraerCampo(texto,"Teléfono"),
+            extraerCampo(texto, ["Celular", "Telefono", "Teléfono", "Phone"]),
 
         direccion:
-            extraerCampo(texto,"Dirección") ||
-            extraerCampo(texto,"Direccion"),
+            extraerCampo(texto, ["Dirección", "Direccion", "Address"]),
+
+        referencia:
+            extraerCampo(texto, ["Referencia", "Reference"]),
+
+        mesa:
+            extraerCampo(texto, ["Mesa", "Table"]),
 
         pedido:
-            extraerCampo(texto,"Pedido"),
+            extraerCampo(texto, ["Pedido", "Productos", "Order"]),
 
         pago:
-            extraerCampo(texto,"Pago"),
+            extraerCampo(texto, ["Pago", "Payment"]),
 
         cambio:
-            extraerCampo(texto,"Cambio"),
+            extraerCampo(texto, ["Cambio"]),
 
         observaciones:
-            extraerCampo(texto,"Observaciones")
+            extraerCampo(texto, ["Observaciones", "Notas", "Notes"])
 
     };
 

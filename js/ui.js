@@ -12,6 +12,11 @@ function escaparHtml(valor) {
 function mostrarComanda(datos) {
 
     const estado = datos.estado || "Nuevo";
+    const tipo = datos.tipo || datos.tipoPedido || "Delivery";
+    const ubicacionEtiqueta = datos.tipoPedido === "dine-in" ? "Mesa" : "Dirección";
+    const referencia = datos.referencia
+        ? `<p><strong>Referencia:</strong> ${escaparHtml(datos.referencia)}</p>`
+        : "";
 
     const items = (datos.pedido || "")
         .split("\n")
@@ -43,9 +48,11 @@ function mostrarComanda(datos) {
             &#127829; COMANDA
         </div>
 
-        <p><strong>&#128100; ${escaparHtml(datos.cliente)}</strong></p>
-        <p>&#128222; ${escaparHtml(datos.telefono)}</p>
-        <p>&#128205; ${escaparHtml(datos.direccion)}</p>
+        <p><strong>${escaparHtml(tipo)}</strong></p>
+        <p><strong>Cliente:</strong> ${escaparHtml(datos.cliente)}</p>
+        <p><strong>Teléfono:</strong> ${escaparHtml(datos.telefono)}</p>
+        <p><strong>${ubicacionEtiqueta}:</strong> ${escaparHtml(datos.direccion)}</p>
+        ${referencia}
 
         <hr>
 
@@ -55,9 +62,9 @@ function mostrarComanda(datos) {
 
         <hr>
 
-        <p>&#128179; ${escaparHtml(datos.pago)}</p>
-        <p>&#128181; Cambio ${escaparHtml(datos.cambio)}</p>
-        <p>&#128221; ${escaparHtml(datos.observaciones)}</p>
+        <p><strong>Pago:</strong> ${escaparHtml(datos.pago)}</p>
+        <p><strong>Vuelto:</strong> ${escaparHtml(datos.cambio)}</p>
+        <p><strong>Notas de cocina:</strong> ${escaparHtml(datos.observaciones)}</p>
 
         <hr>
 
@@ -82,7 +89,7 @@ function actualizarHistorial(pedidos = [], alSeleccionarPedido) {
 
     if (pedidos.length === 0) {
 
-        historial.innerHTML = "<p class='vacio'>Todavia no hay pedidos.</p>";
+        historial.innerHTML = "<p class='vacio'>Todavía no hay pedidos.</p>";
         return;
 
     }

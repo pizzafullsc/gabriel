@@ -2,6 +2,7 @@ let pedidoActual = null;
 let cancelarEscuchaPedidos = null;
 let pedidoSeleccionadoId = null;
 let pedidoVisible = null;
+let timeoutBusquedaCliente = null;
 
 const estadoFormulario = {
     tipoPedido: "delivery",
@@ -60,6 +61,14 @@ function iniciarFormularioPedido() {
     document
         .getElementById("telefono")
         .addEventListener("keydown", manejarTeclaTelefono);
+
+    document
+        .getElementById("telefono")
+        .addEventListener("input", manejarCambioTelefono);
+
+    document
+        .getElementById("telefono")
+        .addEventListener("blur", manejarBlurTelefono);
 
     document
         .getElementById("observaciones")
@@ -187,6 +196,37 @@ async function manejarTeclaTelefono(event) {
 
 }
 
+function manejarCambioTelefono() {
+
+    if (timeoutBusquedaCliente) {
+        window.clearTimeout(timeoutBusquedaCliente);
+    }
+
+    const valor = document.getElementById("telefono").value.trim();
+    const numero = Clientes && typeof Clientes.normalizarTelefono === "function"
+        ? Clientes.normalizarTelefono(valor)
+        : valor.replace(/\D/g, "");
+
+    if (numero.length < 6) {
+        return;
+    }
+
+    timeoutBusquedaCliente = window.setTimeout(() => {
+        buscarClientePorTelefono();
+    }, 350);
+
+}
+
+function manejarBlurTelefono() {
+
+    if (timeoutBusquedaCliente) {
+        window.clearTimeout(timeoutBusquedaCliente);
+    }
+
+    buscarClientePorTelefono();
+
+}
+
 function manejarTeclaProducto(event) {
 
     if (event.key !== "Enter") {
@@ -209,7 +249,10 @@ function manejarTeclaObservaciones(event) {
 
 async function buscarClientePorTelefono() {
 
-    const telefono = document.getElementById("telefono").value.trim();
+    const telefonoInput = document.getElementById("telefono");
+    const telefono = Clientes && typeof Clientes.normalizarTelefono === "function"
+        ? Clientes.normalizarTelefono(telefonoInput.value)
+        : telefonoInput.value.trim();
 
     if (telefono.replace(/\D/g, "").length < 6 || typeof Clientes === "undefined") {
         return;
@@ -222,10 +265,9 @@ async function buscarClientePorTelefono() {
     }
 
     document.getElementById("cliente").value = cliente.nombre || "";
-
-    if (estadoFormulario.tipoPedido === "delivery" && cliente.direcciones && cliente.direcciones[0]) {
-        document.getElementById("direccion").value = cliente.direcciones[0];
-    }
+    document.getElementById("direccion").value = cliente.direccion || "";
+    document.getElementById("referencia").value = cliente.referencia || "";
+    document.getElementById("notas-cliente").value = cliente.observaciones || "";
 
     actualizarPreviewDesdeFormulario();
 
@@ -317,6 +359,7 @@ function poblarFormulario(datos) {
     document.getElementById("mesa").value = datos.mesa || "";
     document.getElementById("pago").value = datos.pago || "";
     document.getElementById("observaciones").value = datos.observaciones || "";
+    document.getElementById("notas-cliente").value = "";
 
     estadoFormulario.productos = normalizarProductos(datos.pedido);
     renderizarProductos();
@@ -530,13 +573,13 @@ async function registrarPedido(event) {
 
         if (typeof Clientes !== "undefined") {
 
-            const existente = await Clientes.buscarPorTelefono(
-                pedidoActual.telefono
-            );
-
-            if (!existente) {
-                await Clientes.guardar(pedidoActual);
-            }
+            await Clientes.guardarDesdePedido({
+                telefono: pedidoActual.telefono,
+                nombre: pedidoActual.cliente,
+                direccion: document.getElementById("direccion").value.trim(),
+                referencia: document.getElementById("referencia").value.trim(),
+                observaciones: document.getElementById("notas-cliente").value.trim()
+            });
 
         }
 

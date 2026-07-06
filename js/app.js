@@ -1,7 +1,11 @@
 let pedidoActual = null;
+let cancelarEscuchaPedidos = null;
+let pedidoSeleccionadoId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-    actualizarHistorial();
+
+    iniciarPedidosEnTiempoReal();
+
 });
 
 document
@@ -12,6 +16,36 @@ document
     .getElementById("registrar")
     .addEventListener("click", registrarPedido);
 
+document
+    .getElementById("pedido")
+    .addEventListener("click", entregarPedido);
+
+function iniciarPedidosEnTiempoReal() {
+
+    if (cancelarEscuchaPedidos) {
+        cancelarEscuchaPedidos();
+    }
+
+    cancelarEscuchaPedidos = Storage.suscribir(pedidos => {
+
+        actualizarHistorial(pedidos, seleccionarPedido);
+
+        if (pedidoSeleccionadoId) {
+
+            const seleccionado = pedidos.find(p =>
+                String(p.firestoreId || p.id) === String(pedidoSeleccionadoId)
+            );
+
+            if (seleccionado) {
+                mostrarComanda(seleccionado);
+            }
+
+        }
+
+    });
+
+}
+
 function interpretarMensaje() {
 
     const texto = document
@@ -20,11 +54,12 @@ function interpretarMensaje() {
         .trim();
 
     if (!texto) {
-        alert("Pegá un mensaje.");
+        alert("Pega un mensaje.");
         return;
     }
 
     pedidoActual = interpretarPedido(texto);
+    pedidoSeleccionadoId = null;
 
     mostrarComanda(pedidoActual);
 
@@ -33,7 +68,7 @@ function interpretarMensaje() {
 async function registrarPedido() {
 
     if (!pedidoActual) {
-        alert("No hay ningún pedido para registrar.");
+        alert("No hay ningun pedido para registrar.");
         return;
     }
 
@@ -53,26 +88,56 @@ async function registrarPedido() {
 
         }
 
-        Storage.guardar(pedidoActual);
+        await Storage.guardar(pedidoActual);
 
         pedidoActual = null;
+        pedidoSeleccionadoId = null;
 
         document.getElementById("mensaje").value = "";
 
         document.getElementById("pedido").innerHTML = `
             <div class="vacio">
-                🍕<br><br>
+                &#127829;<br><br>
                 Esperando un nuevo pedido...
             </div>
         `;
-
-        actualizarHistorial();
 
     } catch (e) {
 
         console.error(e);
 
-        alert("Ocurrió un error al registrar el pedido.");
+        alert("Ocurrio un error al registrar el pedido.");
+
+    }
+
+}
+
+function seleccionarPedido(pedido) {
+
+    pedidoSeleccionadoId = pedido.firestoreId || pedido.id;
+    mostrarComanda(pedido);
+
+}
+
+async function entregarPedido(event) {
+
+    const boton = event.target.closest("[data-entregar-id]");
+
+    if (!boton) {
+        return;
+    }
+
+    boton.disabled = true;
+
+    try {
+
+        await Storage.marcarEntregado(boton.dataset.entregarId);
+
+    } catch (e) {
+
+        console.error(e);
+        alert("Solo se pueden entregar pedidos que estan listos.");
+        boton.disabled = false;
 
     }
 

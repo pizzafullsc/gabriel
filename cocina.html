@@ -40,7 +40,6 @@ header{
     border-radius:10px;
     border-left:8px solid #d63031;
     padding:20px;
-    animation:aparece .25s;
 }
 
 .tarjeta.preparando{
@@ -58,25 +57,25 @@ header{
 pre{
     white-space:pre-wrap;
     font-family:inherit;
-    margin:10px 0;
 }
 
-hr{
+.botones{
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+}
+
+.botones button{
+    flex:1;
+    padding:10px;
     border:none;
-    border-top:1px solid #444;
-    margin:12px 0;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
 }
 
-@keyframes aparece{
-from{
-opacity:0;
-transform:translateY(10px);
-}
-to{
-opacity:1;
-transform:translateY(0);
-}
-}
+.preparar{background:#f1c40f;}
+.listo{background:#2ecc71;}
 
 </style>
 
@@ -86,7 +85,7 @@ transform:translateY(0);
 
 <header>
 
-<h1>🍕 Cocina</h1>
+<h1>&#127829; Cocina</h1>
 
 <div id="estado">Conectando...</div>
 
@@ -100,69 +99,12 @@ transform:translateY(0);
 <script src="js/firebase.js"></script>
 
 <script>
-
 firebase.initializeApp(firebaseConfig);
-
-const db=firebase.firestore();
-
-db.collection("pedidos")
-.onSnapshot((snapshot)=>{
-
-    const cocina=document.getElementById("cocina");
-    cocina.innerHTML="";
-
-    const pedidos=[];
-
-    snapshot.forEach(doc=>{
-        pedidos.push(doc.data());
-    });
-
-    pedidos.sort((a,b)=>a.id-b.id);
-
-    const activos=pedidos.filter(p=>p.estado!=="Entregado");
-
-    document.getElementById("estado").textContent=
-        "Pedidos activos: "+activos.length;
-
-    activos.forEach(p=>{
-
-        const card=document.createElement("div");
-
-        let clase="";
-
-        if(p.estado==="Preparando")
-            clase="preparando";
-
-        if(p.estado==="Listo")
-            clase="listo";
-
-        card.className="tarjeta "+clase;
-
-        card.innerHTML=`
-            <h2>👤 ${p.cliente}</h2>
-
-            <strong>${p.estado}</strong>
-
-            <hr>
-
-            <pre>${p.pedido}</pre>
-
-            <hr>
-
-            <div>📍 ${p.direccion}</div>
-
-            <div>💳 ${p.pago}</div>
-
-            <div>📝 ${p.observaciones||""}</div>
-        `;
-
-        cocina.appendChild(card);
-
-    });
-
-},console.error);
-
+const db = firebase.firestore();
 </script>
+
+<script src="js/storage.js"></script>
+<script src="js/cocina.js"></script>
 
 </body>
 </html>

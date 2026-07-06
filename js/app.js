@@ -30,26 +30,50 @@ function interpretarMensaje() {
 
 }
 
-function registrarPedido() {
+async function registrarPedido() {
 
     if (!pedidoActual) {
         alert("No hay ningún pedido para registrar.");
         return;
     }
 
-    Storage.guardar(pedidoActual);
+    try {
 
-    pedidoActual = null;
+        if (typeof Clientes !== "undefined") {
 
-    document.getElementById("mensaje").value = "";
+            const existente = await Clientes.buscarPorTelefono(
+                pedidoActual.telefono
+            );
 
-    document.getElementById("pedido").innerHTML = `
-        <div class="vacio">
-            🍕<br><br>
-            Esperando un nuevo pedido...
-        </div>
-    `;
+            if (!existente) {
 
-    actualizarHistorial();
+                await Clientes.guardar(pedidoActual);
+
+            }
+
+        }
+
+        Storage.guardar(pedidoActual);
+
+        pedidoActual = null;
+
+        document.getElementById("mensaje").value = "";
+
+        document.getElementById("pedido").innerHTML = `
+            <div class="vacio">
+                🍕<br><br>
+                Esperando un nuevo pedido...
+            </div>
+        `;
+
+        actualizarHistorial();
+
+    } catch (e) {
+
+        console.error(e);
+
+        alert("Ocurrió un error al registrar el pedido.");
+
+    }
 
 }

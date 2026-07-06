@@ -15,22 +15,30 @@ function interpretarPedido(texto){
 
     return {
 
-        cliente: extraerCampo(texto,"Nombre"),
+        cliente:
+            extraerCampo(texto,"Cliente") ||
+            extraerCampo(texto,"Nombre"),
 
         telefono:
             extraerCampo(texto,"Celular") ||
             extraerCampo(texto,"Telefono") ||
             extraerCampo(texto,"Teléfono"),
 
-        direccion: extraerCampo(texto,"Dirección"),
+        direccion:
+            extraerCampo(texto,"Dirección") ||
+            extraerCampo(texto,"Direccion"),
 
-        pedido: extraerCampo(texto,"Pedido"),
+        pedido:
+            extraerCampo(texto,"Pedido"),
 
-        pago: extraerCampo(texto,"Pago"),
+        pago:
+            extraerCampo(texto,"Pago"),
 
-        cambio: extraerCampo(texto,"Cambio"),
+        cambio:
+            extraerCampo(texto,"Cambio"),
 
-        observaciones: extraerCampo(texto,"Observaciones")
+        observaciones:
+            extraerCampo(texto,"Observaciones")
 
     };
 

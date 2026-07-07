@@ -1,6 +1,134 @@
+let pedidosPrevios = new Map();
+let inicializado = false;
+let audioContext = null;
+let sonidoEnCola = false;
+
+function prepararAudio() {
+
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    if (audioContext.state === "suspended") {
+        audioContext.resume().catch((err) => {
+            console.log("[cocina] exception while generating sound", err);
+        });
+    }
+
+}
+
+document.addEventListener("pointerdown", prepararAudio, { once: true });
+document.addEventListener("touchstart", prepararAudio, { once: true });
+
+function playNewOrderSound() {
+
+    console.log("[cocina] playNewOrderSound() entered");
+
+    if (sonidoEnCola) {
+        return;
+    }
+
+    sonidoEnCola = true;
+
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    console.log("[cocina] audioCtx state before resume:", audioContext.state);
+
+    const reproducir = () => {
+        if (!audioContext) {
+            sonidoEnCola = false;
+            return;
+        }
+
+        const now = audioContext.currentTime;
+        const gain = audioContext.createGain();
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.08, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+        gain.connect(audioContext.destination);
+
+        const osc = audioContext.createOscillator();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(1180, now + 0.08);
+        osc.connect(gain);
+        osc.start(now);
+        osc.stop(now + 0.18);
+
+        const osc2 = audioContext.createOscillator();
+        osc2.type = "triangle";
+        osc2.frequency.setValueAtTime(1040, now + 0.08);
+        osc2.frequency.setValueAtTime(1320, now + 0.16);
+        osc2.connect(gain);
+        osc2.start(now + 0.08);
+        osc2.stop(now + 0.26);
+
+        setTimeout(() => {
+            sonidoEnCola = false;
+        }, 300);
+    };
+
+    if (audioContext.state === "suspended") {
+        audioContext.resume().then(() => {
+            console.log("[cocina] audioCtx state after resume:", audioContext.state);
+            reproducir();
+        }).catch((err) => {
+            console.log("[cocina] exception while generating sound", err);
+        });
+    } else {
+        console.log("[cocina] audioCtx state after resume:", audioContext.state);
+        reproducir();
+    }
+
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
-    Storage.suscribir(renderizarCocina, {
+    console.log("[cocina] Storage.suscribir() called");
+
+    Storage.suscribir((pedidos) => {
+
+        console.log("[cocina] Storage callback executed");
+        console.log("[cocina] number of orders received:", pedidos.length);
+
+        renderizarCocina(pedidos);
+
+        if (!inicializado) {
+            inicializado = true;
+            pedidosPrevios = new Map();
+            pedidos.forEach(p => {
+                const id = p.firestoreId || p.id;
+                if (id) {
+                    pedidosPrevios.set(String(id), true);
+                }
+            });
+            return;
+        }
+
+        pedidos.forEach(p => {
+            const id = p.firestoreId || p.id;
+            if (!id) {
+                return;
+            }
+
+            const key = String(id);
+            if (!pedidosPrevios.has(key) && (p.estado || "Nuevo") === "Nuevo") {
+                console.log("[cocina] new order detected", key, p);
+                playNewOrderSound();
+            }
+        });
+
+        pedidosPrevios = new Map();
+        pedidos.forEach(p => {
+            const id = p.firestoreId || p.id;
+            if (id) {
+                pedidosPrevios.set(String(id), true);
+            }
+        });
+
+    }, {
         incluirEntregados: false,
         direccion: "asc"
     });

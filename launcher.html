@@ -73,6 +73,24 @@
     margin-top: 8px;
   }
   .btn:hover { background: var(--accent-2); }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 14px 18px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    color: white;
+    font-weight: 800;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    margin-top: 10px;
+    box-shadow: 0 10px 24px rgba(31,138,91,0.24);
+  }
+  .btn-primary:hover { filter: brightness(1.05); }
   .stack { display: grid; gap: 12px; margin-top: 16px; }
   .info { background: var(--panel-2); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
   .info strong { display: block; margin-bottom: 4px; color: #dce7ec; }
@@ -125,6 +143,7 @@
       <div class="right">
         <div class="qr">
           <img id="qr-image" src="" alt="QR Cocina">
+          <a id="open-kitchen-btn" class="btn-primary" href="#" target="_blank" rel="noopener noreferrer">Abrir Cocina en el teléfono</a>
           <div class="info" style="width: 100%; text-align: center;">
             <strong>Escaneá para abrir cocina</strong>
             <span>Compatible con Android y iPhone</span>
@@ -136,17 +155,23 @@
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const base = window.location.origin;
+    const ip = params.get('ip') || window.location.hostname || '127.0.0.1';
+    const port = params.get('port') || window.location.port || '';
+    const base = port ? `http://${ip}:${port}` : `http://${ip}`;
     const kitchenUrl = `${base}/cocina.html`;
     document.getElementById('kitchen-url').textContent = kitchenUrl;
     document.getElementById('server-status').textContent = 'Servidor activo';
     document.getElementById('firebase-status').textContent = 'Se verificará desde la app';
-
-    const ip = params.get('ip') || '127.0.0.1';
     document.getElementById('local-ip').textContent = ip;
 
     const qrImage = document.getElementById('qr-image');
+    const openKitchenBtn = document.getElementById('open-kitchen-btn');
     qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(kitchenUrl)}`;
+    openKitchenBtn.href = kitchenUrl;
+    openKitchenBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      window.open(kitchenUrl, '_blank', 'noopener,noreferrer');
+    });
   </script>
 </body>
 </html>

@@ -12,7 +12,6 @@ function extraerCampo(texto, campos) {
     const nombres = Array.isArray(campos) ? campos : [campos];
     const lineas = String(texto || "").split(/\r?\n/);
     const etiquetasBuscadas = nombres.map(normalizarTexto);
-
     const etiquetasConocidas = [
         "cliente",
         "nombre",
@@ -73,34 +72,16 @@ function extraerCampo(texto, campos) {
 
 function interpretarPedido(texto) {
 
-    const t = normalizarTexto(texto);
-
-    const telefonoLibre =
-        (texto.match(/(\+?\d[\d\s-]{7,})/) || [])[1]?.replace(/\s|-/g, "") || "";
-
-    const pagoLibre =
-        t.includes("transfer") ? "Transferencia" :
-        t.includes("efectivo") ? "Efectivo" :
-        t.includes("debito") ? "Débito" :
-        t.includes("credito") ? "Crédito" :
-        "";
-
-    const direccionLibre =
-        (texto.match(/\b(?:av\.?|avenida|calle|ruta)?\s*[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+\s+\d{1,5}\b/) || [])[0] || "";
-
-    const pedidoEtiquetado =
-        extraerCampo(texto, ["Pedido", "Productos", "Order"]);
-
     return {
 
         cliente:
             extraerCampo(texto, ["Cliente", "Nombre", "Name"]),
 
         telefono:
-            extraerCampo(texto, ["Celular", "Telefono", "Teléfono", "Phone"]) || telefonoLibre,
+            extraerCampo(texto, ["Celular", "Telefono", "Teléfono", "Phone"]),
 
         direccion:
-            extraerCampo(texto, ["Dirección", "Direccion", "Address"]) || direccionLibre,
+            extraerCampo(texto, ["Dirección", "Direccion", "Address"]),
 
         referencia:
             extraerCampo(texto, ["Referencia", "Reference"]),
@@ -109,10 +90,10 @@ function interpretarPedido(texto) {
             extraerCampo(texto, ["Mesa", "Table"]),
 
         pedido:
-            pedidoEtiquetado || texto.trim(),
+            extraerCampo(texto, ["Pedido", "Productos", "Order"]),
 
         pago:
-            extraerCampo(texto, ["Pago", "Payment"]) || pagoLibre,
+            extraerCampo(texto, ["Pago", "Payment"]),
 
         cambio:
             extraerCampo(texto, ["Cambio"]),

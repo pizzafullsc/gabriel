@@ -28,9 +28,7 @@ const TicketPrinter = {
 
     generarDocumento(pedido) {
 
-        const items = (pedido.pedido || "")
-            .split("\n")
-            .filter(item => item.trim() !== "")
+        const items = this.lineasPedidoCocina(pedido.pedido)
             .map(item => `<li>${this.escaparHtml(item)}</li>`)
             .join("");
         const ubicacionEtiqueta = pedido.tipoPedido === "dine-in" ? "Mesa" : "Dirección";
@@ -115,6 +113,7 @@ li {
     <h1>PEDIDO #${this.escaparHtml(this.numeroPedido(pedido))}</h1>
     <div class="tipo">${this.escaparHtml(this.tipoPedido(pedido))}</div>
     <div class="centrado">${this.escaparHtml(this.fechaPedido(pedido))}</div>
+    <div class="centrado">Estado: ${this.escaparHtml(pedido.estado || "Nuevo")}</div>
 
     <div class="linea"></div>
 
@@ -136,6 +135,34 @@ li {
 </div>
 </body>
 </html>`;
+
+    },
+
+    lineasPedidoCocina(pedidoTexto) {
+
+        return String(pedidoTexto || "")
+            .split("\n")
+            .map(item => this.quitarPreciosDeLinea(item))
+            .map(item => item.trim())
+            .filter(item => item !== "" && !this.esLineaTotal(item));
+
+    },
+
+    quitarPreciosDeLinea(linea) {
+
+        return String(linea || "")
+            .replace(/\b(?:subtotal|total)\b\s*:?\s*.*/gi, "")
+            .replace(/\b(?:UYU|USD|U\$S)\s*\$?\s*[\d.,]+\b/gi, "")
+            .replace(/\$\s*[\d.,]+\b/g, "")
+            .replace(/\b[\d.,]+\s*(?:pesos|uyu|usd)\b/gi, "")
+            .replace(/\s*(?:-|--|:)\s*$/g, "")
+            .replace(/\s{2,}/g, " ");
+
+    },
+
+    esLineaTotal(linea) {
+
+        return /^(?:subtotal|total)\b/i.test(String(linea || "").trim());
 
     },
 

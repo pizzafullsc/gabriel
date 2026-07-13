@@ -953,6 +953,7 @@ function construirPedidoDesdeFormulario() {
     const pedido = crearTextoPedidoCompatibilidad(items);
 
     return {
+        firestoreId: pedidoActual && pedidoActual.firestoreId ? pedidoActual.firestoreId : null,
         id: pedidoActual && pedidoActual.id ? pedidoActual.id : null,
         numero: pedidoActual && pedidoActual.numero ? pedidoActual.numero : null,
         fecha: pedidoActual && pedidoActual.fecha ? pedidoActual.fecha : null,
@@ -1145,8 +1146,71 @@ function mostrarPedidoVisible(pedido) {
 
 function manejarAccionPedido(event) {
 
+    editarPedido(event);
     imprimirPedido(event);
     entregarPedido(event);
+    cancelarPedido(event);
+
+}
+
+function editarPedido(event) {
+
+    const boton = event.target.closest("[data-editar-pedido]");
+
+    if (!boton || !pedidoVisible) {
+        return;
+    }
+
+    cargarPedidoEnFormulario(pedidoVisible);
+
+}
+
+function cargarPedidoEnFormulario(pedido) {
+
+    const tipoPedido = pedido.tipoPedido || inferirTipoPedido(pedido);
+
+    pedidoActual = pedido;
+    pedidoSeleccionadoId = pedido.firestoreId || pedido.id || null;
+    estadoFormulario.tipoPedido = tipoPedido;
+
+    sincronizarVistaFormulario();
+
+    document.getElementById("telefono").value = pedido.telefono || "";
+    document.getElementById("cliente").value = pedido.cliente || "";
+    document.getElementById("direccion").value = tipoPedido === "dine-in" ? "" : pedido.direccion || "";
+    document.getElementById("referencia").value = pedido.referencia || "";
+    document.getElementById("mesa").value = pedido.mesa || (tipoPedido === "dine-in" ? pedido.direccion || "" : "");
+    document.getElementById("pago").value = pedido.pago || "";
+    document.getElementById("cambio").value = pedido.cambio || "";
+    document.getElementById("observaciones").value = pedido.observaciones || "";
+    document.getElementById("notas-cliente").value = "";
+    actualizarVisibilidadVuelto();
+
+    if (Array.isArray(pedido.items) && pedido.items.length > 0) {
+        estadoFormulario.items = normalizarItemsPedido(pedido.items);
+    } else if (Array.isArray(pedido.productos) && pedido.productos.length > 0) {
+        estadoFormulario.items = normalizarItemsPedido(pedido.productos);
+    } else {
+        estadoFormulario.items = normalizarItemsDesdeTexto(pedido.pedido);
+    }
+
+    renderizarProductos();
+    actualizarPreviewDesdeFormulario();
+    document.getElementById("cliente").focus();
+
+}
+
+function inferirTipoPedido(pedido) {
+
+    if (pedido.mesa || pedido.tipo === "Salon") {
+        return "dine-in";
+    }
+
+    if (!pedido.direccion) {
+        return "pickup";
+    }
+
+    return "delivery";
 
 }
 
@@ -1186,6 +1250,30 @@ async function entregarPedido(event) {
 
         console.error(e);
         alert("Solo se pueden entregar pedidos que estén listos.");
+        boton.disabled = false;
+
+    }
+
+}
+
+async function cancelarPedido(event) {
+
+    const boton = event.target.closest("[data-cancelar-id]");
+
+    if (!boton) {
+        return;
+    }
+
+    boton.disabled = true;
+
+    try {
+
+        await Storage.marcarCancelado(boton.dataset.cancelarId);
+
+    } catch (e) {
+
+        console.error(e);
+        alert("No se pudo cancelar el pedido.");
         boton.disabled = false;
 
     }

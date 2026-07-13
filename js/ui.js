@@ -24,7 +24,15 @@ function mostrarComanda(datos) {
 
     const id = datos.firestoreId || datos.id || "";
     const puedeEntregar = id && estado === "Listo";
+    const puedeCancelar = id && estado !== "Entregado" && estado !== "Cancelado";
+    const puedeEditar = id && estado !== "Entregado" && estado !== "Cancelado";
     const puedeImprimir = id || datos.cliente || datos.pedido;
+    const accionEditar = puedeEditar
+        ? `
+        <button type="button" data-editar-pedido>
+            Editar pedido
+        </button>`
+        : "";
     const accionImprimir = puedeImprimir
         ? `
         <button type="button" data-imprimir-cocina>
@@ -38,6 +46,12 @@ function mostrarComanda(datos) {
         ? `
         <button type="button" data-entregar-id="${escaparHtml(id)}">
             Marcar como entregado
+        </button>`
+        : "";
+    const accionCancelar = puedeCancelar
+        ? `
+        <button type="button" data-cancelar-id="${escaparHtml(id)}">
+            Cancelar pedido
         </button>`
         : "";
 
@@ -75,6 +89,8 @@ function mostrarComanda(datos) {
         </p>
 
         ${accionEntregar}
+        ${accionCancelar}
+        ${accionEditar}
         ${accionImprimir}
 
     </div>
@@ -155,6 +171,9 @@ function iconoEstado(e) {
 
         case "Entregado":
             return "&#128309;";
+
+        case "Cancelado":
+            return "&#9899;";
 
         default:
             return "&#128308;";

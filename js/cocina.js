@@ -150,7 +150,10 @@ function escaparHtml(valor) {
 
 function renderizarCocina(pedidos) {
 
-    const activos = pedidos.filter(p => p.estado !== "Entregado");
+    const activos = pedidos.filter(p =>
+        p.estado !== "Entregado" &&
+        p.estado !== "Cancelado"
+    );
     const cocina = document.getElementById("cocina");
 
     document.getElementById("estado").textContent =
@@ -185,8 +188,6 @@ function renderizarCocina(pedidos) {
             <hr>
 
             <div>&#128205; ${escaparHtml(p.direccion)}</div>
-
-            <div>&#128179; ${escaparHtml(p.pago)}</div>
 
             <div>&#128221; ${escaparHtml(p.observaciones)}</div>
 

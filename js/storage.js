@@ -73,7 +73,10 @@ const Storage = {
                     let pedidos = snapshot.docs.map(doc => this.normalizar(doc));
 
                     if (!incluirEntregados) {
-                        pedidos = pedidos.filter(p => p.estado !== "Entregado");
+                        pedidos = pedidos.filter(p =>
+                            p.estado !== "Entregado" &&
+                            p.estado !== "Cancelado"
+                        );
                     }
 
                     resolve(this.ordenar(pedidos, direccion));
@@ -105,7 +108,10 @@ const Storage = {
             let pedidos = snapshot.docs.map(doc => this.normalizar(doc));
 
             if (!incluirEntregados) {
-                pedidos = pedidos.filter(p => p.estado !== "Entregado");
+                pedidos = pedidos.filter(p =>
+                    p.estado !== "Entregado" &&
+                    p.estado !== "Cancelado"
+                );
             }
 
             callback(this.ordenar(pedidos, direccion));
@@ -125,21 +131,27 @@ const Storage = {
             return Promise.reject(new Error("Firestore no esta inicializado."));
         }
 
-        const id = Date.now();
-        const fecha = new Date().toLocaleString("es-UY");
+        const { firestoreId, ...datosPedido } = pedido;
+        const idExistente = firestoreId || datosPedido.id;
+        const esActualizacion = Boolean(idExistente);
+        const idDocumento = esActualizacion ? idExistente : Date.now();
+        const id = esActualizacion ? (datosPedido.id || idDocumento) : idDocumento;
+        const fecha = esActualizacion && datosPedido.fecha
+            ? datosPedido.fecha
+            : new Date().toLocaleString("es-UY");
 
         const nuevoPedido = {
-            ...pedido,
+            ...datosPedido,
             id,
-            numero: pedido.numero || id,
+            numero: datosPedido.numero || id,
             fecha,
-            estado: "Nuevo",
-            creadoEn: this.timestampServidor(),
+            estado: datosPedido.estado || "Nuevo",
+            creadoEn: datosPedido.creadoEn || this.timestampServidor(),
             actualizadoEn: this.timestampServidor()
         };
 
         return this.coleccion
-            .doc(String(id))
+            .doc(String(idDocumento))
             .set(nuevoPedido);
 
     },
@@ -196,6 +208,12 @@ const Storage = {
     marcarEntregado(id) {
 
         return this.cambiarEstado(id, "Entregado", ["Listo"]);
+
+    },
+
+    marcarCancelado(id) {
+
+        return this.cambiarEstado(id, "Cancelado", ["Nuevo", "Preparando", "Listo"]);
 
     }
 

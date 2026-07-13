@@ -63,6 +63,10 @@ function iniciarFormularioPedido() {
         .addEventListener("click", interpretarMensaje);
 
     document
+        .getElementById("imagen-whatsapp")
+        .addEventListener("change", limpiarEstadoOcr);
+
+    document
         .getElementById("formulario-pedido")
         .addEventListener("submit", registrarPedido);
 
@@ -362,6 +366,8 @@ function abrirFlujoWhatsApp() {
 
     const dialog = document.getElementById("whatsapp-dialog");
     document.getElementById("mensaje").value = "";
+    document.getElementById("imagen-whatsapp").value = "";
+    actualizarEstadoOcr("");
 
     if (dialog.showModal) {
         dialog.showModal();
@@ -385,18 +391,39 @@ function cerrarFlujoWhatsApp() {
 
 }
 
-function interpretarMensaje() {
+async function interpretarMensaje() {
 
-    const texto = document
+    let texto = document
         .getElementById("mensaje")
         .value
         .trim();
+    const imagen = document.getElementById("imagen-whatsapp").files[0];
+
+    if (imagen) {
+
+        try {
+
+            actualizarEstadoOcr("Leyendo imagen...");
+            texto = await OcrService.reconocerImagen(imagen, actualizarEstadoOcr);
+            document.getElementById("mensaje").value = texto;
+
+        } catch (e) {
+
+            console.error(e);
+            actualizarEstadoOcr("No se pudo leer la imagen.");
+            alert("No se pudo ejecutar OCR. Podés pegar el texto manualmente.");
+            return;
+
+        }
+
+    }
 
     if (!texto) {
-        alert("Pegá un mensaje.");
+        alert("Pegá un mensaje o seleccioná una imagen.");
         return;
     }
 
+    actualizarEstadoOcr("Interpretando pedido...");
     const pedidoInterpretado = interpretarPedido(texto);
     poblarFormulario(pedidoInterpretado);
     cerrarFlujoWhatsApp();
@@ -405,9 +432,27 @@ function interpretarMensaje() {
 
 }
 
+function actualizarEstadoOcr(mensaje) {
+
+    const estado = document.getElementById("ocr-estado");
+
+    if (estado) {
+        estado.textContent = mensaje || "";
+    }
+
+}
+
+function limpiarEstadoOcr() {
+
+    actualizarEstadoOcr("");
+
+}
+
 function poblarFormulario(datos) {
 
-    if (datos.mesa) {
+    if (datos.tipoPedido) {
+        estadoFormulario.tipoPedido = datos.tipoPedido;
+    } else if (datos.mesa) {
         estadoFormulario.tipoPedido = "dine-in";
     } else if (!datos.direccion) {
         estadoFormulario.tipoPedido = "pickup";
@@ -439,12 +484,102 @@ function normalizarItemsDesdeTexto(texto) {
         .split("\n")
         .map(linea => linea.trim())
         .filter(Boolean)
-        .map((nombre, index) => normalizarItemPedido({
-            id: crearIdItemPedido(index),
-            nombre,
-            cantidad: 1,
-            observaciones: ""
-        }, index));
+        .map((linea, index) => crearItemDesdeTexto(linea, index));
+
+}
+
+function crearItemDesdeTexto(linea, index) {
+
+    const cantidad = extraerCantidadLinea(linea);
+    const descripcion = limpiarCantidadLinea(linea);
+    const itemCatalogo = resolverItemCatalogoDesdeTexto(descripcion, cantidad);
+
+    if (itemCatalogo) {
+        return itemCatalogo;
+    }
+
+    return normalizarItemPedido({
+        id: crearIdItemPedido(index),
+        nombre: descripcion,
+        cantidad,
+        observaciones: ""
+    }, index);
+
+}
+
+function extraerCantidadLinea(linea) {
+
+    const coincidencia = String(linea || "").trim().match(/^(\d+)\s*x?\s+/i);
+
+    return coincidencia
+        ? normalizarCantidad(coincidencia[1])
+        : 1;
+
+}
+
+function limpiarCantidadLinea(linea) {
+
+    return String(linea || "")
+        .trim()
+        .replace(/^(\d+)\s*x?\s+/i, "")
+        .trim();
+
+}
+
+function resolverItemCatalogoDesdeTexto(texto, cantidad) {
+
+    if (!estadoFormulario.menuListo || !texto) {
+        return null;
+    }
+
+    const productos = MenuService.buscar(texto);
+
+    if (productos.length !== 1) {
+        return null;
+    }
+
+    const producto = productos[0];
+    const presentacion = resolverPresentacionDesdeTexto(producto, texto);
+
+    if (!presentacion) {
+        return null;
+    }
+
+    return crearItemPedido({
+        producto,
+        presentacion,
+        cantidad,
+        gustos: resolverGustosDesdeTexto(texto)
+    });
+
+}
+
+function resolverPresentacionDesdeTexto(producto, texto) {
+
+    const normalizado = normalizarTexto(texto);
+    const presentaciones = producto.presentaciones || [];
+    const mencionada = presentaciones.find(presentacion =>
+        normalizado.includes(normalizarTexto(presentacion.nombre)) ||
+        normalizado.includes(normalizarTexto(presentacion.id))
+    );
+
+    return mencionada || (presentaciones.length === 1 ? presentaciones[0] : null);
+
+}
+
+function resolverGustosDesdeTexto(texto) {
+
+    const normalizado = normalizarTexto(texto);
+
+    return MenuService.getGustos()
+        .filter(gusto =>
+            normalizado.includes(normalizarTexto(gusto.nombre)) ||
+            normalizado.includes(normalizarTexto(gusto.id))
+        )
+        .map(gusto => ({
+            id: gusto.id,
+            nombre: gusto.nombre
+        }));
 
 }
 
@@ -1017,13 +1152,19 @@ function manejarAccionPedido(event) {
 
 function imprimirPedido(event) {
 
-    const boton = event.target.closest("[data-imprimir-pedido]");
+    const botonCocina = event.target.closest("[data-imprimir-cocina]");
+    const botonCaja = event.target.closest("[data-imprimir-caja]");
 
-    if (!boton) {
+    if (!botonCocina && !botonCaja) {
         return;
     }
 
-    TicketPrinter.imprimir(pedidoVisible);
+    if (botonCaja) {
+        TicketPrinter.imprimirCaja(pedidoVisible);
+        return;
+    }
+
+    TicketPrinter.imprimirCocina(pedidoVisible);
 
 }
 

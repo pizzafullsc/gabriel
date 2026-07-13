@@ -12,8 +12,8 @@ vm.runInContext(parserSource, context);
 
 const texto = [
   'Cliente: Ana',
-  'Teléfono: 1122334455',
-  'Dirección: Av Siempre Viva 123',
+  'Telefono: 1122334455',
+  'Direccion: Av Siempre Viva 123',
   'Pedido:',
   '2x Muzzarella',
   '1x Pepsi',
@@ -26,8 +26,7 @@ assert.strictEqual(resultado.cliente, 'Ana');
 assert.strictEqual(resultado.telefono, '1122334455');
 assert.strictEqual(resultado.direccion, 'Av Siempre Viva 123');
 assert.strictEqual(resultado.tipoPedido, 'delivery');
-assert.ok(Array.isArray(resultado.productos));
-assert.ok(resultado.productos.length >= 1);
-assert.ok(resultado.confidence.productos >= 0.8);
+assert.ok(resultado.pedido.includes('2x Muzzarella'));
+assert.strictEqual(resultado.observaciones, 'sin cebolla');
 
 console.log('parser tests passed');

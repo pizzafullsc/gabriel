@@ -27,8 +27,11 @@ function mostrarComanda(datos) {
     const puedeImprimir = id || datos.cliente || datos.pedido;
     const accionImprimir = puedeImprimir
         ? `
-        <button type="button" data-imprimir-pedido>
-            &#128424; Imprimir
+        <button type="button" data-imprimir-cocina>
+            &#128424; Imprimir cocina
+        </button>
+        <button type="button" data-imprimir-caja>
+            &#128424; Imprimir caja
         </button>`
         : "";
     const accionEntregar = puedeEntregar

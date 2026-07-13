@@ -191,6 +191,15 @@
             <textarea
                 id="mensaje"
                 placeholder="Pegá el mensaje de WhatsApp..."></textarea>
+            <label>
+                <span>Imagen de WhatsApp</span>
+                <input
+                    id="imagen-whatsapp"
+                    name="imagen-whatsapp"
+                    type="file"
+                    accept="image/*">
+            </label>
+            <p id="ocr-estado" class="ocr-status" aria-live="polite"></p>
             <div class="dialog-actions">
                 <button type="button" id="cancelar-whatsapp">Cancelar</button>
                 <button type="button" id="interpretar">Cargar pedido</button>
@@ -244,6 +253,8 @@ const db = firebase.firestore();
 
 <script src="js/parser.js"></script>
 <script src="js/menuService.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="js/ocrService.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/clientes.js"></script>

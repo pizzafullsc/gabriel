@@ -378,6 +378,13 @@ dialog::backdrop{
     height:220px;
 }
 
+.ocr-status{
+    min-height:22px;
+    margin-top:10px;
+    color:#dce2e6;
+    font-weight:700;
+}
+
 .dialog-actions{
     display:grid;
     grid-template-columns:1fr 1fr;

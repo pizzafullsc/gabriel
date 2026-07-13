@@ -12,7 +12,6 @@ function extraerCampo(texto, campos) {
     const nombres = Array.isArray(campos) ? campos : [campos];
     const lineas = String(texto || "").split(/\r?\n/);
     const etiquetasBuscadas = nombres.map(normalizarTexto);
-
     const etiquetasConocidas = [
         "cliente",
         "nombre",
@@ -34,7 +33,9 @@ function extraerCampo(texto, campos) {
         "notas",
         "notes",
         "mesa",
-        "table"
+        "table",
+        "tipo",
+        "tipo de pedido"
     ];
 
     let capturando = false;
@@ -71,55 +72,83 @@ function extraerCampo(texto, campos) {
 
 }
 
+const WhatsappParser = {
+
+    interpretar(texto) {
+
+        const original = String(texto || "");
+        const normalizado = normalizarTexto(original);
+        const telefonoLibre =
+            (original.match(/(\+?\d[\d\s-]{7,})/) || [])[1]?.replace(/\s|-/g, "") || "";
+        const direccionLibre =
+            (original.match(/\b(?:av\.?|avenida|calle|ruta)?\s*[A-Za-z\s]+\s+\d{1,5}\b/) || [])[0] || "";
+        const pedidoEtiquetado = extraerCampo(original, ["Pedido", "Productos", "Order"]);
+        const mesa = extraerCampo(original, ["Mesa", "Table"]);
+        const direccion = extraerCampo(original, ["Direccion", "Address"]) || direccionLibre;
+
+        return {
+            cliente: extraerCampo(original, ["Cliente", "Nombre", "Name"]),
+            telefono: extraerCampo(original, ["Celular", "Telefono", "Phone"]) || telefonoLibre,
+            direccion,
+            referencia: extraerCampo(original, ["Referencia", "Reference"]),
+            mesa,
+            tipoPedido: this.detectarTipoPedido(normalizado, { mesa, direccion }),
+            pedido: pedidoEtiquetado || original.trim(),
+            pago: extraerCampo(original, ["Pago", "Payment"]) || this.detectarPago(normalizado),
+            cambio: extraerCampo(original, ["Cambio"]),
+            observaciones: extraerCampo(original, ["Observaciones", "Notas", "Notes"])
+        };
+
+    },
+
+    detectarPago(texto) {
+
+        if (texto.includes("transfer")) {
+            return "Transferencia";
+        }
+
+        if (texto.includes("efectivo")) {
+            return "Efectivo";
+        }
+
+        if (texto.includes("debito")) {
+            return "Debito";
+        }
+
+        if (texto.includes("credito")) {
+            return "Credito";
+        }
+
+        if (texto.includes("qr")) {
+            return "Pago con QR";
+        }
+
+        return "";
+
+    },
+
+    detectarTipoPedido(texto, datos) {
+
+        if (datos.mesa || texto.includes("salon") || texto.includes("mesa")) {
+            return "dine-in";
+        }
+
+        if (texto.includes("retiro") || texto.includes("retira") || texto.includes("paso a buscar")) {
+            return "pickup";
+        }
+
+        if (datos.direccion || texto.includes("delivery") || texto.includes("envio")) {
+            return "delivery";
+        }
+
+        return "";
+
+    }
+
+};
+
 function interpretarPedido(texto) {
 
-    const t = normalizarTexto(texto);
-
-    const telefonoLibre =
-        (texto.match(/(\+?\d[\d\s-]{7,})/) || [])[1]?.replace(/\s|-/g, "") || "";
-
-    const pagoLibre =
-        t.includes("transfer") ? "Transferencia" :
-        t.includes("efectivo") ? "Efectivo" :
-        t.includes("debito") ? "Débito" :
-        t.includes("credito") ? "Crédito" :
-        "";
-
-    const direccionLibre =
-        (texto.match(/\b(?:av\.?|avenida|calle|ruta)?\s*[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+\s+\d{1,5}\b/) || [])[0] || "";
-
-    const pedidoEtiquetado =
-        extraerCampo(texto, ["Pedido", "Productos", "Order"]);
-
-    return {
-
-        cliente:
-            extraerCampo(texto, ["Cliente", "Nombre", "Name"]),
-
-        telefono:
-            extraerCampo(texto, ["Celular", "Telefono", "Teléfono", "Phone"]) || telefonoLibre,
-
-        direccion:
-            extraerCampo(texto, ["Dirección", "Direccion", "Address"]) || direccionLibre,
-
-        referencia:
-            extraerCampo(texto, ["Referencia", "Reference"]),
-
-        mesa:
-            extraerCampo(texto, ["Mesa", "Table"]),
-
-        pedido:
-            pedidoEtiquetado || texto.trim(),
-
-        pago:
-            extraerCampo(texto, ["Pago", "Payment"]) || pagoLibre,
-
-        cambio:
-            extraerCampo(texto, ["Cambio"]),
-
-        observaciones:
-            extraerCampo(texto, ["Observaciones", "Notas", "Notes"])
-
-    };
+    return WhatsappParser.interpretar(texto);
 
 }

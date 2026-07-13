@@ -131,6 +131,7 @@ const Storage = {
         const nuevoPedido = {
             ...pedido,
             id,
+            numero: pedido.numero || id,
             fecha,
             estado: "Nuevo",
             creadoEn: this.timestampServidor(),

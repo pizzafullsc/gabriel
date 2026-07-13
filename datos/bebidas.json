@@ -1,0 +1,40 @@
+[
+  {
+    "id": "refresco_500",
+    "categoria": "bebidas",
+    "nombre": "Refresco 500 ml",
+    "descripcion": "",
+    "imagen": "",
+    "disponible": true,
+    "destacado": false,
+    "permiteGustos": false,
+    "gustosIncluidos": 0,
+    "orden": 1,
+    "presentaciones": [
+      {
+        "id": "unidad",
+        "nombre": "Unidad",
+        "precio": 120
+      }
+    ]
+  },
+  {
+    "id": "refresco_15",
+    "categoria": "bebidas",
+    "nombre": "Refresco 1.5 L",
+    "descripcion": "",
+    "imagen": "",
+    "disponible": true,
+    "destacado": false,
+    "permiteGustos": false,
+    "gustosIncluidos": 0,
+    "orden": 2,
+    "presentaciones": [
+      {
+        "id": "unidad",
+        "nombre": "Unidad",
+        "precio": 220
+      }
+    ]
+  }
+]

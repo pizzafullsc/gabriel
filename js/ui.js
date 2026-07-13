@@ -18,9 +18,7 @@ function mostrarComanda(datos) {
         ? `<p><strong>Referencia:</strong> ${escaparHtml(datos.referencia)}</p>`
         : "";
 
-    const items = (datos.pedido || "")
-        .split("\n")
-        .filter(i => i.trim() !== "")
+    const items = lineasPedidoCompatibles(datos)
         .map(i => `<li>${escaparHtml(i)}</li>`)
         .join("");
 
@@ -78,6 +76,19 @@ function mostrarComanda(datos) {
 
     </div>
     `;
+
+}
+
+function lineasPedidoCompatibles(datos) {
+
+    if (Array.isArray(datos.items) && datos.items.length > 0) {
+        return datos.items.map(item => `${item.cantidad}x ${item.nombre}`);
+    }
+
+    return String(datos.pedido || "")
+        .split("\n")
+        .map(item => item.trim())
+        .filter(Boolean);
 
 }
 

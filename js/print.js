@@ -28,7 +28,7 @@ const TicketPrinter = {
 
     generarDocumento(pedido) {
 
-        const items = this.lineasPedidoCocina(pedido.pedido)
+        const items = this.lineasPedidoCocina(pedido)
             .map(item => `<li>${this.escaparHtml(item)}</li>`)
             .join("");
         const ubicacionEtiqueta = pedido.tipoPedido === "dine-in" ? "Mesa" : "Dirección";
@@ -138,10 +138,13 @@ li {
 
     },
 
-    lineasPedidoCocina(pedidoTexto) {
+    lineasPedidoCocina(pedido) {
 
-        return String(pedidoTexto || "")
-            .split("\n")
+        const lineas = Array.isArray(pedido.items) && pedido.items.length > 0
+            ? pedido.items.map(item => `${item.cantidad}x ${item.nombre}`)
+            : String(pedido.pedido || "").split("\n");
+
+        return lineas
             .map(item => this.quitarPreciosDeLinea(item))
             .map(item => item.trim())
             .filter(item => item !== "" && !this.esLineaTotal(item));

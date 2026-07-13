@@ -117,11 +117,30 @@
             <h3>Productos</h3>
             <p>¿Qué va a llevar?</p>
             <div class="product-entry">
-                <input
-                    id="producto-busqueda"
-                    name="producto"
-                    autocomplete="off"
-                    placeholder="Buscar producto">
+                <label>
+                    <span>Categoría</span>
+                    <select id="categoria-menu" name="categoria-menu"></select>
+                </label>
+                <label>
+                    <span>Producto</span>
+                    <select id="producto-menu" name="producto-menu"></select>
+                </label>
+                <label>
+                    <span>Presentación</span>
+                    <select id="presentacion-menu" name="presentacion-menu"></select>
+                </label>
+                <label>
+                    <span>Cantidad</span>
+                    <input
+                        id="cantidad-producto"
+                        name="cantidad-producto"
+                        type="number"
+                        min="1"
+                        step="1"
+                        value="1">
+                </label>
+                <div id="gustos-menu" class="taste-list" aria-live="polite"></div>
+                <div id="precio-producto" class="price-preview"></div>
                 <button type="button" id="agregar-producto">Agregar</button>
             </div>
 
@@ -224,6 +243,7 @@ const db = firebase.firestore();
 </script>
 
 <script src="js/parser.js"></script>
+<script src="js/menuService.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/clientes.js"></script>

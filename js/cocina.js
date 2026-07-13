@@ -180,7 +180,7 @@ function renderizarCocina(pedidos) {
 
             <hr>
 
-            <pre>${escaparHtml(p.pedido)}</pre>
+            <pre>${escaparHtml(textoPedidoCocina(p))}</pre>
 
             <hr>
 
@@ -196,6 +196,18 @@ function renderizarCocina(pedidos) {
         cocina.appendChild(card);
 
     });
+
+}
+
+function textoPedidoCocina(pedido) {
+
+    if (Array.isArray(pedido.items) && pedido.items.length > 0) {
+        return pedido.items
+            .map(item => `${item.cantidad}x ${item.nombre}`)
+            .join("\n");
+    }
+
+    return pedido.pedido || "";
 
 }
 

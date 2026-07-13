@@ -1,0 +1,22 @@
+[
+  {
+    "id": "pizza",
+    "nombre": "Pizza"
+  },
+  {
+    "id": "pizzeta",
+    "nombre": "Pizzetas"
+  },
+  {
+    "id": "figazza",
+    "nombre": "Figazzas"
+  },
+  {
+    "id": "faina",
+    "nombre": "Faina"
+  },
+  {
+    "id": "bebidas",
+    "nombre": "Bebidas"
+  }
+]

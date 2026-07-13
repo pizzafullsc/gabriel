@@ -249,13 +249,60 @@ fieldset{
 
 .product-entry{
     display:grid;
-    grid-template-columns:1fr auto;
-    gap:10px;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:12px;
     align-items:stretch;
 }
 
 .product-entry button{
-    width:86px;
+    width:100%;
+    min-height:44px;
+    grid-column:1 / -1;
+}
+
+.taste-list,
+.price-preview{
+    grid-column:1 / -1;
+}
+
+.taste-list > span{
+    display:block;
+    color:#d9dee2;
+    font-weight:700;
+    margin-bottom:7px;
+}
+
+.taste-options{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:8px;
+}
+
+.taste-options label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-height:40px;
+    padding:8px 10px;
+    border:1px solid var(--border);
+    border-radius:6px;
+    background:#101214;
+}
+
+.taste-options input{
+    width:auto;
+    min-height:0;
+}
+
+.taste-options span{
+    margin:0;
+    font-weight:600;
+}
+
+.price-preview{
+    color:#dce2e6;
+    font-weight:700;
+    min-height:22px;
 }
 
 .product-list{
@@ -471,7 +518,9 @@ footer{
 
     .field-grid,
     .top-actions,
-    .dialog-actions{
+    .dialog-actions,
+    .product-entry,
+    .taste-options{
         grid-template-columns:1fr;
     }
 

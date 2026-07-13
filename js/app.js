@@ -6,7 +6,8 @@ let timeoutBusquedaCliente = null;
 
 const estadoFormulario = {
     tipoPedido: "delivery",
-    productos: []
+    items: [],
+    menuListo: false
 };
 
 const preguntasCliente = {
@@ -15,14 +16,33 @@ const preguntasCliente = {
     "dine-in": "¿A quién lo dejamos?"
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     iniciarPedidosEnTiempoReal();
+    await iniciarCatalogoMenu();
     iniciarFormularioPedido();
     sincronizarVistaFormulario();
     actualizarPreviewDesdeFormulario();
 
 });
+
+async function iniciarCatalogoMenu() {
+
+    try {
+
+        await MenuService.init();
+        estadoFormulario.menuListo = true;
+        renderizarSelectorMenu();
+
+    } catch (e) {
+
+        console.error(e);
+        estadoFormulario.menuListo = false;
+        bloquearSelectorMenu("No se pudo cargar el menu.");
+
+    }
+
+}
 
 function iniciarFormularioPedido() {
 
@@ -52,11 +72,31 @@ function iniciarFormularioPedido() {
 
     document
         .getElementById("agregar-producto")
-        .addEventListener("click", agregarProductoDesdeBusqueda);
+        .addEventListener("click", agregarProductoDesdeMenu);
 
     document
-        .getElementById("producto-busqueda")
+        .getElementById("cantidad-producto")
         .addEventListener("keydown", manejarTeclaProducto);
+
+    document
+        .getElementById("categoria-menu")
+        .addEventListener("change", manejarCambioCategoriaMenu);
+
+    document
+        .getElementById("producto-menu")
+        .addEventListener("change", manejarCambioProductoMenu);
+
+    document
+        .getElementById("presentacion-menu")
+        .addEventListener("change", actualizarPrecioProductoMenu);
+
+    document
+        .getElementById("gustos-menu")
+        .addEventListener("change", actualizarPrecioProductoMenu);
+
+    document
+        .getElementById("cantidad-producto")
+        .addEventListener("input", actualizarPrecioProductoMenu);
 
     document
         .getElementById("telefono")
@@ -259,7 +299,7 @@ function manejarTeclaProducto(event) {
     }
 
     event.preventDefault();
-    agregarProductoDesdeBusqueda();
+    agregarProductoDesdeMenu();
 
 }
 
@@ -388,44 +428,283 @@ function poblarFormulario(datos) {
     document.getElementById("notas-cliente").value = "";
     actualizarVisibilidadVuelto();
 
-    estadoFormulario.productos = normalizarProductos(datos.pedido);
+    estadoFormulario.items = normalizarItemsDesdeTexto(datos.pedido);
     renderizarProductos();
 
 }
 
-function normalizarProductos(texto) {
+function normalizarItemsDesdeTexto(texto) {
 
     return String(texto || "")
         .split("\n")
         .map(linea => linea.trim())
         .filter(Boolean)
-        .map(nombre => ({
+        .map((nombre, index) => normalizarItemPedido({
+            id: crearIdItemPedido(index),
             nombre,
             cantidad: 1,
-            observacion: ""
-        }));
+            observaciones: ""
+        }, index));
 
 }
 
-function agregarProductoDesdeBusqueda() {
+function renderizarSelectorMenu() {
 
-    const input = document.getElementById("producto-busqueda");
-    const nombre = input.value.trim();
+    const categorias = MenuService.getCategorias();
+    const selectCategoria = document.getElementById("categoria-menu");
 
-    if (!nombre) {
+    selectCategoria.innerHTML = categorias
+        .map(categoria => `
+            <option value="${escaparHtml(categoria.id)}">${escaparHtml(categoria.nombre)}</option>
+        `)
+        .join("");
+
+    manejarCambioCategoriaMenu();
+
+}
+
+function bloquearSelectorMenu(mensaje) {
+
+    ["categoria-menu", "producto-menu", "presentacion-menu", "cantidad-producto", "agregar-producto"]
+        .forEach(id => {
+            const campo = document.getElementById(id);
+
+            if (campo) {
+                campo.disabled = true;
+            }
+        });
+
+    document.getElementById("gustos-menu").innerHTML = "";
+    document.getElementById("precio-producto").textContent = mensaje;
+
+}
+
+function manejarCambioCategoriaMenu() {
+
+    const categoriaId = document.getElementById("categoria-menu").value;
+    const productos = MenuService.getProductosPorCategoria(categoriaId)
+        .filter(producto => producto.disponible !== false);
+
+    document.getElementById("producto-menu").innerHTML = productos
+        .map(producto => `
+            <option value="${escaparHtml(producto.id)}">${escaparHtml(producto.nombre)}</option>
+        `)
+        .join("");
+
+    manejarCambioProductoMenu();
+
+}
+
+function manejarCambioProductoMenu() {
+
+    const productoId = document.getElementById("producto-menu").value;
+    const presentaciones = MenuService.getPresentaciones(productoId);
+
+    document.getElementById("presentacion-menu").innerHTML = presentaciones
+        .map(presentacion => `
+            <option value="${escaparHtml(presentacion.id)}">${escaparHtml(presentacion.nombre)}</option>
+        `)
+        .join("");
+
+    renderizarGustosMenu();
+    actualizarPrecioProductoMenu();
+
+}
+
+function renderizarGustosMenu() {
+
+    const producto = obtenerProductoMenuSeleccionado();
+    const contenedor = document.getElementById("gustos-menu");
+
+    if (!producto || !producto.permiteGustos) {
+        contenedor.innerHTML = "";
         return;
     }
 
-    estadoFormulario.productos.push({
-        nombre,
-        cantidad: 1,
-        observacion: ""
-    });
+    const gustos = MenuService.getGustos();
 
-    input.value = "";
+    contenedor.innerHTML = `
+        <span>Gustos</span>
+        <div class="taste-options">
+            ${gustos.map(gusto => `
+                <label>
+                    <input type="checkbox" value="${escaparHtml(gusto.id)}">
+                    <span>${escaparHtml(gusto.nombre)}</span>
+                </label>
+            `).join("")}
+        </div>
+    `;
+
+}
+
+function actualizarPrecioProductoMenu() {
+
+    const producto = obtenerProductoMenuSeleccionado();
+    const presentacion = obtenerPresentacionMenuSeleccionada();
+    const cantidad = obtenerCantidadProductoMenu();
+    const gustos = obtenerGustosMenuSeleccionados();
+    const precio = producto && presentacion
+        ? MenuService.calcularPrecio(producto.id, presentacion.id, gustos.length)
+        : 0;
+    const subtotal = producto && presentacion
+        ? MenuService.calcularSubtotal(producto.id, presentacion.id, gustos.length, cantidad)
+        : 0;
+
+    document.getElementById("precio-producto").textContent = precio
+        ? `Unitario: $${precio} | Subtotal: $${subtotal}`
+        : "";
+
+}
+
+function agregarProductoDesdeMenu() {
+
+    if (!estadoFormulario.menuListo) {
+        alert("El menu todavia no esta listo.");
+        return;
+    }
+
+    const producto = obtenerProductoMenuSeleccionado();
+    const presentacion = obtenerPresentacionMenuSeleccionada();
+    const cantidad = obtenerCantidadProductoMenu();
+    const gustos = obtenerGustosMenuSeleccionados();
+
+    if (!producto || !presentacion) {
+        return;
+    }
+
+    estadoFormulario.items.push(crearItemPedido({
+        producto,
+        presentacion,
+        cantidad,
+        gustos
+    }));
+
+    document.getElementById("cantidad-producto").value = "1";
+    limpiarGustosMenu();
+    actualizarPrecioProductoMenu();
     renderizarProductos();
     actualizarPreviewDesdeFormulario();
-    input.focus();
+    document.getElementById("producto-menu").focus();
+
+}
+
+function crearItemPedido(datos) {
+
+    const producto = MenuService.getProducto(datos.producto.id);
+    const presentacion = obtenerPresentacionDeProducto(producto, datos.presentacion.id);
+    const gustos = Array.isArray(datos.gustos) ? datos.gustos : [];
+    const cantidad = normalizarCantidad(datos.cantidad);
+    const precioUnitario = MenuService.calcularPrecio(
+        producto.id,
+        presentacion.id,
+        gustos.length
+    );
+    const subtotal = MenuService.calcularSubtotal(
+        producto.id,
+        presentacion.id,
+        gustos.length,
+        cantidad
+    );
+    const item = {
+        id: crearIdItemPedido(),
+        categoriaId: producto.categoria,
+        productoId: producto.id,
+        nombre: nombreProductoParaPedido(producto, presentacion, gustos),
+        presentacionId: presentacion.id,
+        presentacion: presentacion.nombre,
+        cantidad,
+        gustos,
+        observaciones: datos.observaciones || "",
+        precioUnitario,
+        subtotal
+    };
+
+    return item;
+
+}
+
+function obtenerPresentacionDeProducto(producto, presentacionId) {
+
+    return (producto.presentaciones || [])
+        .find(presentacion => presentacion.id === presentacionId) || null;
+
+}
+
+function crearIdItemPedido(sufijo) {
+
+    const base = Date.now().toString(36);
+    const extra = typeof sufijo === "undefined"
+        ? Math.random().toString(36).slice(2, 8)
+        : String(sufijo);
+
+    return `item_${base}_${extra}`;
+
+}
+
+function obtenerProductoMenuSeleccionado() {
+
+    const id = document.getElementById("producto-menu").value;
+    return id ? MenuService.getProducto(id) : null;
+
+}
+
+function obtenerPresentacionMenuSeleccionada() {
+
+    const producto = obtenerProductoMenuSeleccionado();
+    const id = document.getElementById("presentacion-menu").value;
+
+    if (!producto || !id) {
+        return null;
+    }
+
+    return (producto.presentaciones || [])
+        .find(presentacion => presentacion.id === id) || null;
+
+}
+
+function obtenerCantidadProductoMenu() {
+
+    const cantidad = Number(document.getElementById("cantidad-producto").value || 1);
+    return Math.max(1, Math.floor(cantidad));
+
+}
+
+function obtenerGustosMenuSeleccionados() {
+
+    return Array.from(document.querySelectorAll("#gustos-menu input[type='checkbox']:checked"))
+        .map(input => {
+            const gusto = MenuService.getGustos()
+                .find(item => item.id === input.value);
+
+            return gusto
+                ? { id: gusto.id, nombre: gusto.nombre }
+                : { id: input.value, nombre: input.value };
+        });
+
+}
+
+function limpiarGustosMenu() {
+
+    document
+        .querySelectorAll("#gustos-menu input[type='checkbox']")
+        .forEach(input => {
+            input.checked = false;
+        });
+
+}
+
+function nombreProductoParaPedido(producto, presentacion, gustos) {
+
+    const partes = [
+        producto.nombre,
+        presentacion && presentacion.nombre
+    ].filter(Boolean);
+
+    if (gustos.length > 0) {
+        partes.push(gustos.map(gusto => gusto.nombre).join(", "));
+    }
+
+    return partes.join(" - ");
 
 }
 
@@ -438,22 +717,24 @@ function manejarAccionProducto(event) {
     }
 
     const index = Number(boton.dataset.index);
-    const producto = estadoFormulario.productos[index];
+    const item = estadoFormulario.items[index];
 
-    if (!producto) {
+    if (!item) {
         return;
     }
 
     if (boton.dataset.productAction === "increase") {
-        producto.cantidad += 1;
+        item.cantidad += 1;
+        recalcularItemPedido(item);
     }
 
     if (boton.dataset.productAction === "decrease") {
-        producto.cantidad -= 1;
+        item.cantidad -= 1;
+        recalcularItemPedido(item);
     }
 
-    if (boton.dataset.productAction === "remove" || producto.cantidad <= 0) {
-        estadoFormulario.productos.splice(index, 1);
+    if (boton.dataset.productAction === "remove" || item.cantidad <= 0) {
+        estadoFormulario.items.splice(index, 1);
     }
 
     renderizarProductos();
@@ -461,26 +742,44 @@ function manejarAccionProducto(event) {
 
 }
 
+function recalcularItemPedido(item) {
+
+    if (item) {
+        item.cantidad = normalizarCantidad(item.cantidad);
+        item.subtotal = MenuService.calcularSubtotalPorCantidad(item.precioUnitario, item.cantidad);
+    }
+
+    return item;
+
+}
+
+function normalizarCantidad(cantidad) {
+
+    return Math.max(1, Math.floor(Number(cantidad || 1)));
+
+}
+
 function renderizarProductos() {
 
     const lista = document.getElementById("lista-productos");
 
-    if (estadoFormulario.productos.length === 0) {
+    if (estadoFormulario.items.length === 0) {
         lista.innerHTML = "<p class='vacio'>Todavía no hay productos.</p>";
         return;
     }
 
-    lista.innerHTML = estadoFormulario.productos
-        .map((producto, index) => `
+    lista.innerHTML = estadoFormulario.items
+        .map((item, index) => `
             <div class="product-row">
                 <div>
-                    <strong>${escaparHtml(producto.cantidad)}x ${escaparHtml(producto.nombre)}</strong>
-                    ${producto.observacion ? `<small>${escaparHtml(producto.observacion)}</small>` : ""}
+                    <strong>${escaparHtml(item.cantidad)}x ${escaparHtml(item.nombre)}</strong>
+                    ${item.precioUnitario ? `<small>$${escaparHtml(item.precioUnitario)} c/u - subtotal $${escaparHtml(item.subtotal)}</small>` : ""}
+                    ${item.observaciones ? `<small>${escaparHtml(item.observaciones)}</small>` : ""}
                 </div>
                 <div class="quantity-controls">
-                    <button type="button" data-product-action="decrease" data-index="${index}" aria-label="Disminuir ${escaparHtml(producto.nombre)}">-</button>
-                    <button type="button" data-product-action="increase" data-index="${index}" aria-label="Aumentar ${escaparHtml(producto.nombre)}">+</button>
-                    <button type="button" data-product-action="remove" data-index="${index}" aria-label="Quitar ${escaparHtml(producto.nombre)}">Quitar</button>
+                    <button type="button" data-product-action="decrease" data-index="${index}" aria-label="Disminuir ${escaparHtml(item.nombre)}">-</button>
+                    <button type="button" data-product-action="increase" data-index="${index}" aria-label="Aumentar ${escaparHtml(item.nombre)}">+</button>
+                    <button type="button" data-product-action="remove" data-index="${index}" aria-label="Quitar ${escaparHtml(item.nombre)}">Quitar</button>
                 </div>
             </div>
         `)
@@ -492,12 +791,15 @@ function nuevoPedido() {
 
     document.getElementById("formulario-pedido").reset();
     estadoFormulario.tipoPedido = "delivery";
-    estadoFormulario.productos = [];
+    estadoFormulario.items = [];
     pedidoActual = null;
     pedidoSeleccionadoId = null;
     pedidoVisible = null;
 
     sincronizarVistaFormulario();
+    if (estadoFormulario.menuListo) {
+        renderizarSelectorMenu();
+    }
     renderizarProductos();
     actualizarPreviewDesdeFormulario();
     document.querySelector("[data-order-type='delivery']").focus();
@@ -511,11 +813,14 @@ function construirPedidoDesdeFormulario() {
     const direccion = document.getElementById("direccion").value.trim();
     const referencia = document.getElementById("referencia").value.trim();
     const ubicacion = tipo === "dine-in" ? mesa : direccion;
-    const pedido = estadoFormulario.productos
-        .map(producto => `${producto.cantidad}x ${producto.nombre}`)
-        .join("\n");
+    const items = normalizarItemsPedido(estadoFormulario.items);
+    const totales = calcularTotalesPedido(items);
+    const pedido = crearTextoPedidoCompatibilidad(items);
 
     return {
+        id: pedidoActual && pedidoActual.id ? pedidoActual.id : null,
+        numero: pedidoActual && pedidoActual.numero ? pedidoActual.numero : null,
+        fecha: pedidoActual && pedidoActual.fecha ? pedidoActual.fecha : null,
         tipoPedido: tipo,
         tipo: etiquetaTipoPedido(tipo),
         cliente: document.getElementById("cliente").value.trim(),
@@ -523,12 +828,79 @@ function construirPedidoDesdeFormulario() {
         mesa,
         direccion: ubicacion,
         referencia: tipo === "delivery" ? referencia : "",
+        items,
+        subtotal: totales.subtotal,
+        descuentos: totales.descuentos,
+        total: totales.total,
+        estado: pedidoActual && pedidoActual.estado ? pedidoActual.estado : "Nuevo",
         pedido,
-        productos: estadoFormulario.productos.map(producto => ({ ...producto })),
+        productos: crearProductosCompatibilidad(items),
         pago: document.getElementById("pago").value.trim(),
         cambio: document.getElementById("cambio").value.trim(),
         observaciones: document.getElementById("observaciones").value.trim()
     };
+
+}
+
+function normalizarItemsPedido(items) {
+
+    return (Array.isArray(items) ? items : [])
+        .map((item, index) => normalizarItemPedido(item, index));
+
+}
+
+function normalizarItemPedido(item, index) {
+
+    const cantidad = normalizarCantidad(item.cantidad);
+    const precioUnitario = Number(item.precioUnitario || 0);
+    const presentacion = typeof item.presentacion === "object"
+        ? item.presentacion.nombre
+        : item.presentacion;
+
+    return {
+        id: item.id || crearIdItemPedido(index),
+        categoriaId: item.categoriaId || item.categoria || "",
+        productoId: item.productoId || item.idProducto || "",
+        nombre: item.nombre || "",
+        presentacionId: item.presentacionId || (item.presentacion && item.presentacion.id) || "",
+        presentacion: presentacion || "",
+        cantidad,
+        gustos: Array.isArray(item.gustos) ? item.gustos : [],
+        observaciones: item.observaciones || item.observacion || "",
+        precioUnitario,
+        subtotal: MenuService.calcularSubtotalPorCantidad(precioUnitario, cantidad)
+    };
+
+}
+
+function calcularTotalesPedido(items) {
+
+    const subtotal = items.reduce((total, item) => total + Number(item.subtotal || 0), 0);
+    const descuentos = 0;
+
+    return {
+        subtotal,
+        descuentos,
+        total: Math.max(0, subtotal - descuentos)
+    };
+
+}
+
+function crearTextoPedidoCompatibilidad(items) {
+
+    return items
+        .map(item => `${item.cantidad}x ${item.nombre}`)
+        .join("\n");
+
+}
+
+function crearProductosCompatibilidad(items) {
+
+    return items.map(item => ({
+        ...item,
+        categoria: item.categoriaId,
+        observacion: item.observaciones
+    }));
 
 }
 
@@ -580,7 +952,7 @@ async function registrarPedido(event) {
 
     if (!pedidoActual.pedido) {
         alert("Agregá al menos un producto.");
-        document.getElementById("producto-busqueda").focus();
+        document.getElementById("producto-menu").focus();
         return;
     }
 

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Gabriel Cocina</title>
+
+<link rel="stylesheet" href="css/styles.css">
+
+<style>
+
+body{
+    background:#111;
+    color:white;
+    margin:0;
+    font-family:Segoe UI,Arial,sans-serif;
+}
+
+header{
+    padding:20px;
+    border-bottom:1px solid #333;
+}
+
+#estado{
+    color:#7fe28b;
+    margin-top:8px;
+}
+
+#cocina{
+    padding:20px;
+    display:grid;
+    gap:20px;
+    grid-template-columns:repeat(auto-fill,minmax(330px,1fr));
+}
+
+.tarjeta{
+    background:#222;
+    border-radius:10px;
+    border-left:8px solid #d63031;
+    padding:20px;
+}
+
+.tarjeta.preparando{
+    border-left-color:#f1c40f;
+}
+
+.tarjeta.listo{
+    border-left-color:#2ecc71;
+}
+
+.tarjeta h2{
+    margin:0 0 10px;
+}
+
+pre{
+    white-space:pre-wrap;
+    font-family:inherit;
+}
+
+.botones{
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+}
+
+.botones button{
+    flex:1;
+    padding:10px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.preparar{background:#f1c40f;}
+.listo{background:#2ecc71;}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<div class="brand-block">
+    <img src="assets/Logo full fondo negro.png" alt="PizzaFull" class="brand-logo">
+    <p class="brand-subtitle">Centro de operaciones</p>
+</div>
+
+<div id="estado">Conectando...</div>
+
+</header>
+
+<div id="cocina"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+
+<script src="js/firebase.js"></script>
+
+<script>
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+</script>
+
+<script src="js/storage.js"></script>
+<script src="js/cocina.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PizzaFull Operations Center</title>
+<style>
+  :root {
+    --bg: #0f1418;
+    --panel: #161d22;
+    --panel-2: #1d2730;
+    --accent: #1f8a5b;
+    --accent-2: #28a56f;
+    --text: #f5f7f8;
+    --muted: #a3b0b8;
+    --border: #2d3b45;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Segoe UI, Arial, sans-serif;
+    background: linear-gradient(135deg, var(--bg), #1a242b);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    width: min(980px, 100%);
+    background: rgba(22, 29, 34, 0.96);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    overflow: hidden;
+  }
+  .hero {
+    padding: 28px 32px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  }
+  .hero img {
+    max-height: 54px;
+    width: auto;
+    display: block;
+    background: rgba(255,255,255,0.95);
+    padding: 8px 12px;
+    border-radius: 12px;
+  }
+  .hero h1 { margin: 0 0 6px; font-size: 28px; }
+  .hero p { margin: 0; color: #e7f8ef; }
+  .content { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 0; }
+  .left { padding: 24px 28px 28px; border-right: 1px solid var(--border); }
+  .right { padding: 24px 28px 28px; background: var(--panel); }
+  .badge { display: inline-block; padding: 6px 10px; border-radius: 999px; background: rgba(31,138,91,0.16); color: #8fe4b5; border: 1px solid rgba(31,138,91,0.24); font-size: 12px; font-weight: 700; margin-bottom: 16px; }
+  .version { color: var(--muted); margin: 8px 0 18px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    margin-top: 8px;
+  }
+  .btn:hover { background: var(--accent-2); }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 14px 18px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    color: white;
+    font-weight: 800;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    margin-top: 10px;
+    box-shadow: 0 10px 24px rgba(31,138,91,0.24);
+  }
+  .btn-primary:hover { filter: brightness(1.05); }
+  .stack { display: grid; gap: 12px; margin-top: 16px; }
+  .info { background: var(--panel-2); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
+  .info strong { display: block; margin-bottom: 4px; color: #dce7ec; }
+  .info span { color: var(--muted); word-break: break-all; }
+  .qr { display: grid; justify-items: center; gap: 10px; }
+  .qr img { width: min(220px, 100%); border-radius: 16px; background: white; padding: 8px; }
+  .status-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #5c6770; display: inline-block; margin-right: 6px; }
+  .dot.ok { background: #2ecc71; }
+  .dot.warn { background: #f1c40f; }
+  @media (max-width: 760px) {
+    .content { grid-template-columns: 1fr; }
+    .left { border-right: 0; border-bottom: 1px solid var(--border); }
+    .hero { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="hero">
+      <div>
+        <img src="assets/Logo full fondo negro.png" alt="PizzaFull">
+        <h1>Centro de Operaciones</h1>
+        <p>Gabriel Engine v1.0</p>
+      </div>
+      <a class="btn" href="index.html" target="_blank">Abrir Caja</a>
+    </div>
+    <div class="content">
+      <div class="left">
+        <div class="badge">Operaciones</div>
+        <div class="stack">
+          <div class="info">
+            <strong>URL de cocina</strong>
+            <span id="kitchen-url">Cargando…</span>
+          </div>
+          <div class="info">
+            <strong>Estado del servidor</strong>
+            <span id="server-status">Cargando…</span>
+          </div>
+          <div class="info">
+            <strong>Conexión Firebase</strong>
+            <span id="firebase-status">Verificando…</span>
+          </div>
+          <div class="info">
+            <strong>IP local</strong>
+            <span id="local-ip">Cargando…</span>
+          </div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="qr">
+          <img id="qr-image" src="" alt="QR Cocina">
+          <a id="open-kitchen-btn" class="btn-primary" href="#" target="_blank" rel="noopener noreferrer">Abrir Cocina en el teléfono</a>
+          <div class="info" style="width: 100%; text-align: center;">
+            <strong>Escaneá para abrir cocina</strong>
+            <span>Compatible con Android y iPhone</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const ip = params.get('ip') || window.location.hostname || '127.0.0.1';
+    const port = params.get('port') || window.location.port || '';
+    const base = port ? `http://${ip}:${port}` : `http://${ip}`;
+    const kitchenUrl = `${base}/cocina.html`;
+    document.getElementById('kitchen-url').textContent = kitchenUrl;
+    document.getElementById('server-status').textContent = 'Servidor activo';
+    document.getElementById('firebase-status').textContent = 'Se verificará desde la app';
+    document.getElementById('local-ip').textContent = ip;
+
+    const qrImage = document.getElementById('qr-image');
+    const openKitchenBtn = document.getElementById('open-kitchen-btn');
+    qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(kitchenUrl)}`;
+    openKitchenBtn.href = kitchenUrl;
+    openKitchenBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      window.open(kitchenUrl, '_blank', 'noopener,noreferrer');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+[
+  {
+    "id": "pizza_comun",
+    "categoria": "pizza",
+    "nombre": "Pizza comun",
+    "descripcion": "",
+    "imagen": "",
+    "disponible": true,
+    "destacado": false,
+    "permiteGustos": true,
+    "gustosIncluidos": 0,
+    "orden": 1,
+    "presentaciones": [
+      {
+        "id": "porcion",
+        "nombre": "Porcion",
+        "precio": 150
+      },
+      {
+        "id": "medio_metro",
+        "nombre": "Medio metro",
+        "precio": 280
+      },
+      {
+        "id": "metro",
+        "nombre": "Metro",
+        "precio": 490
+      }
+    ]
+  },
+  {
+    "id": "pizzeta_comun",
+    "categoria": "pizzeta",
+    "nombre": "Pizzeta comun",
+    "descripcion": "",
+    "imagen": "",
+    "disponible": true,
+    "destacado": false,
+    "permiteGustos": true,
+    "gustosIncluidos": 2,
+    "orden": 1,
+    "presentaciones": [
+      {
+        "id": "individual",
+        "nombre": "Individual",
+        "precio": 250
+      },
+      {
+        "id": "mediana",
+        "nombre": "Mediana",
+        "precio": 420
+      },
+      {
+        "id": "mega",
+        "nombre": "Mega",
+        "precio": 620
+      }
+    ]
+  },
+  {
+    "id": "figazza",
+    "categoria": "figazza",
+    "nombre": "Figazza",
+    "descripcion": "",
+    "imagen": "",
+    "disponible": true,
+    "destacado": false,
+    "permiteGustos": false,
+    "gustosIncluidos": 0,
+    "orden": 1,
+    "presentaciones": [
+      {
+        "id": "porcion",
+        "nombre": "Porcion",
+        "precio": 150
+      },
+      {
+        "id": "medio_metro",
+        "nombre": "Medio metro",
+        "precio": 280
+      },
+      {
+        "id": "metro",
+        "nombre": "Metro",
+        "precio": 490
+      }
+    ]
+  },
+  {
+    "id": "faina",
+    "categoria": "faina",
+    "nombre": "Faina",
+    "descripcion": "",
+    "imagen": "",
+    "disponible": true,
+    "destacado": false,
+    "permiteGustos": false,
+    "gustosIncluidos": 0,
+    "orden": 1,
+    "presentaciones": [
+      {
+        "id": "porcion",
+        "nombre": "Porcion",
+        "precio": 120
+      }
+    ]
+  }
+]

@@ -1,83 +1,183 @@
-function mostrarComanda(datos){
+function escaparHtml(valor) {
 
-    const items = (datos.pedido || "")
-        .split("\n")
-        .filter(l => l.trim() !== "")
-        .map(l => `<li>${l}</li>`)
+    return String(valor || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+function mostrarComanda(datos) {
+
+    const estado = datos.estado || "Nuevo";
+    const tipo = datos.tipo || datos.tipoPedido || "Delivery";
+    const ubicacionEtiqueta = datos.tipoPedido === "dine-in" ? "Mesa" : "Dirección";
+    const referencia = datos.referencia
+        ? `<p><strong>Referencia:</strong> ${escaparHtml(datos.referencia)}</p>`
+        : "";
+
+    const items = lineasPedidoCompatibles(datos)
+        .map(i => `<li>${escaparHtml(i)}</li>`)
         .join("");
+
+    const id = datos.firestoreId || datos.id || "";
+    const puedeEntregar = id && estado === "Listo";
+    const puedeCancelar = id && estado !== "Entregado" && estado !== "Cancelado";
+    const puedeEditar = id && estado !== "Entregado" && estado !== "Cancelado";
+    const puedeImprimir = id || datos.cliente || datos.pedido;
+    const accionEditar = puedeEditar
+        ? `
+        <button type="button" data-editar-pedido>
+            Editar pedido
+        </button>`
+        : "";
+    const accionImprimir = puedeImprimir
+        ? `
+        <button type="button" data-imprimir-cocina>
+            &#128424; Imprimir cocina
+        </button>
+        <button type="button" data-imprimir-caja>
+            &#128424; Imprimir caja
+        </button>`
+        : "";
+    const accionEntregar = puedeEntregar
+        ? `
+        <button type="button" data-entregar-id="${escaparHtml(id)}">
+            Marcar como entregado
+        </button>`
+        : "";
+    const accionCancelar = puedeCancelar
+        ? `
+        <button type="button" data-cancelar-id="${escaparHtml(id)}">
+            Cancelar pedido
+        </button>`
+        : "";
 
     document.getElementById("pedido").innerHTML = `
 
-        <div class="ticket">
+    <div class="ticket">
 
-            <div class="ticket-header">
-                🍕 COMANDA
-            </div>
-
-            <div>👤 <strong>${datos.cliente}</strong></div>
-
-            <div>📞 ${datos.telefono}</div>
-
-            <div>📍 ${datos.direccion}</div>
-
-            <hr>
-
-            <h3>🛒 Pedido</h3>
-
-            <ul class="lista-pedido">
-                ${items}
-            </ul>
-
-            <hr>
-
-            <div>💳 ${datos.pago}</div>
-
-            <div>💵 Cambio: ${datos.cambio}</div>
-
-            <div>📝 ${datos.observaciones}</div>
-
+        <div class="ticket-header">
+            &#127829; COMANDA
         </div>
 
+        <p><strong>${escaparHtml(tipo)}</strong></p>
+        <p><strong>Cliente:</strong> ${escaparHtml(datos.cliente)}</p>
+        <p><strong>Teléfono:</strong> ${escaparHtml(datos.telefono)}</p>
+        <p><strong>${ubicacionEtiqueta}:</strong> ${escaparHtml(datos.direccion)}</p>
+        ${referencia}
+
+        <hr>
+
+        <ul class="lista-pedido">
+            ${items}
+        </ul>
+
+        <hr>
+
+        <p><strong>Pago:</strong> ${escaparHtml(datos.pago)}</p>
+        <p><strong>Vuelto para:</strong> ${escaparHtml(datos.cambio)}</p>
+        <p><strong>Notas de cocina:</strong> ${escaparHtml(datos.observaciones)}</p>
+
+        <hr>
+
+        <p class="estado-pedido">
+            <strong>Estado:</strong>
+            ${iconoEstado(estado)} ${escaparHtml(estado)}
+        </p>
+
+        ${accionEntregar}
+        ${accionCancelar}
+        ${accionEditar}
+        ${accionImprimir}
+
+    </div>
     `;
+
 }
 
-function actualizarHistorial(){
+function lineasPedidoCompatibles(datos) {
 
-    if(typeof Storage.obtener !== "function"){
-        return;
+    if (Array.isArray(datos.items) && datos.items.length > 0) {
+        return datos.items.map(item => `${item.cantidad}x ${item.nombre}`);
     }
 
-    const pedidos = Storage.obtener();
+    return String(datos.pedido || "")
+        .split("\n")
+        .map(item => item.trim())
+        .filter(Boolean);
 
-    const div = document.getElementById("historial");
+}
 
-    if(!div){
+function actualizarHistorial(pedidos = [], alSeleccionarPedido) {
+
+    const historial = document.getElementById("historial");
+
+    if (!historial) return;
+
+    if (pedidos.length === 0) {
+
+        historial.innerHTML = "<p class='vacio'>Todavía no hay pedidos.</p>";
         return;
+
     }
 
-    if(pedidos.length===0){
+    historial.innerHTML = "";
 
-        div.innerHTML="<p class='vacio'>Todavía no hay pedidos.</p>";
+    pedidos.forEach(p => {
 
-        return;
+        const card = document.createElement("div");
 
-    }
+        card.className = "item-historial";
 
-    div.innerHTML=pedidos.map(p=>{
+        card.innerHTML = `
 
-        const cantidad=(p.pedido||"")
-            .split("\n")
-            .filter(x=>x.trim()!=="")
-            .length;
+            <strong>${iconoEstado(p.estado || "Nuevo")} ${escaparHtml(p.cliente)}</strong><br>
 
-        return `
-            <div class="item-historial">
-                <strong>🔴 ${p.cliente}</strong><br>
-                <small>${p.fecha}</small><br>
-                🍕 ${cantidad} producto${cantidad!==1?"s":""}
-            </div>
+            <small>${escaparHtml(p.fecha)}</small><br>
+
+            ${escaparHtml(p.estado || "Nuevo")}
+
         `;
 
-    }).join("");
+        card.addEventListener("click", () => {
+
+            if (typeof alSeleccionarPedido === "function") {
+                alSeleccionarPedido(p);
+                return;
+            }
+
+            mostrarComanda(p);
+
+        });
+
+        historial.appendChild(card);
+
+    });
+
+}
+
+function iconoEstado(e) {
+
+    switch (e) {
+
+        case "Preparando":
+            return "&#128993;";
+
+        case "Listo":
+            return "&#128994;";
+
+        case "Entregado":
+            return "&#128309;";
+
+        case "Cancelado":
+            return "&#9899;";
+
+        default:
+            return "&#128308;";
+
+    }
 
 }
